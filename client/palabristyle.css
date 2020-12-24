@@ -26,8 +26,10 @@
 
 @font-face {
    font-family: 'alba';
-   src: url('/client/alba.ttf') format('truetype');
+   src: url('/client/fonts/alba.ttf') format('truetype');
 }
+
+/*comment*/
 
 .titleBig {
 	overflow:hidden;
