@@ -1,0 +1,713 @@
+/*@media screen and (max-width: 600px) {
+
+  div.menuStart {
+  	width:80%;
+  	height:50%;
+  	font-size:0.8rem;
+  }
+
+  button.button {
+  	font-size:0.8rem;
+  }
+
+  div.footer {
+  	display:none;
+  }
+
+  div.titleBig {
+  	display:none;
+  }
+
+  div.menuGame {
+  	width:90%;
+	height:80%;
+  }
+}*/
+
+@font-face {
+   font-family: 'alba';
+   src: url('alba.ttf') format('truetype');
+}
+
+.titleBig {
+	overflow:hidden;
+	text-align:center;
+}
+
+.titleBig a {
+	display:inline;
+}
+
+.titleSmall {
+	overflow:hidden;
+	text-align:left;
+}
+
+.titleSmall a {
+	display:inline;
+	font-size:30px;
+	margin-left:20px;
+}
+
+.footer {
+	text-align:center;
+	bottom:0;
+	left:0;
+	right:0;
+}
+
+.card {
+	box-shadow:0 2px 5px 0 
+	rgba(0,0,0,0.16),0 2px 10px 0 
+	rgba(0,0,0,0.12)
+}
+
+.menuStart {
+	width:500px;
+	margin:0 auto;
+	margin-top:2em;
+	display:flex;
+	flex-wrap:wrap;
+}
+
+.menuSettings {
+	position:absolute;
+	right:0;
+	width:250px;
+	margin:10px;
+	padding:10px;
+}
+
+.menuGame {
+	width:70%;
+	height:70%;
+	margin:0 auto;
+	margin-top:2em;
+}
+
+.boxText {
+	padding:20px 20px 0 20px;
+}
+
+.buttonLink {
+	background: none!important;
+	border: none;
+/*	padding: 0!important;*/
+	/*optional*/
+	color: #21409a;
+	cursor: pointer;
+}
+
+.inputBox {
+	padding:8px;
+	display:block;
+	width:100%;
+	border:1px solid #ccc!important;
+}
+
+.inputBoxStart {
+	display:block;
+	border:1px solid #ccc!important;
+}
+
+.inputGame {
+	padding:8px;
+	width:30%;
+	height:50%;
+	margin-left:35%;
+	border:1px solid #ccc!important;
+	font-size:20px;
+}
+
+.inputQuestions {
+	padding:8px;
+	width:70%;
+	height:50%;
+	margin-left:15%;
+	border:1px solid #ccc!important;
+	font-size:20px;
+}
+
+.inputStory {
+	padding:8px;
+	width:85%;
+	height:85%;
+	margin-left:7.5%;
+	border:1px solid #ccc!important;
+	font-size:1.05vw;
+	font-family:Tahoma,sans-serif;
+}
+
+.button {
+	border:none;
+	display:inline-block;
+	padding:8px 16px;
+	vertical-align:middle;
+	overflow:hidden;
+	text-decoration:none;
+	color:inherit;
+	background-color:inherit;
+	text-align:center;
+	cursor:pointer;
+	white-space:nowrap;
+}
+
+.startMenuButton {
+	border:none;
+	text-decoration:none;
+	color:inherit;
+	background-color:inherit;
+	text-align:center;
+	cursor:pointer;
+	white-space:nowrap;
+}
+
+.startMenuButton:hover {
+	color:#000!important;
+	background-color:#ccc!important;
+}
+
+.button:hover {
+	color:#000!important;
+	background-color:#ccc!important;
+}
+
+.settingsMenu {
+	width:100%;
+	display:grid;
+	grid-template-rows:2;
+	grid-template-columns:23% 12% 65%;
+	grid-gap: 10px 0;
+}
+
+.startGridContainer {
+	height:100%;
+	display:grid;
+	grid-template-rows:60% 15% 15% auto auto;
+	grid-template-columns:60% 40%;
+	grid-gap: 10px 0;
+}
+
+.gameMenuGrid {
+	height:100%;
+	display:grid;
+	grid-template-rows:minmax(45px, 10%) minmax(150px,90%);
+	grid-template-columns:15% 85%;
+}
+
+.waitingGrid {
+	display:grid;
+	grid-template-rows:2;
+	grid-template-columns:1;
+}
+
+.questionsRoundGrid {
+	display:grid;
+	grid-template-rows:7;
+	grid-template-columns:minmax(300px,90%) 130px;
+}
+
+.storyDisplayGrid {
+	display:grid;
+	grid-template-rows:auto 14.2857%;
+	grid-template-columns:minmax(300px,90%) minmax(110px,10%);
+}
+
+.storyVotingDisplayGrid {
+	display:grid;
+	grid-template-rows:1;
+	grid-template-columns:70% 30%;
+}
+
+.questionsDisplayGrid {
+	display:grid;
+	grid-template-rows:1;
+	grid-template-columns:80% 20%;
+}
+
+.storyRoundGrid {
+	display:grid;
+	grid-template-rows:10% auto 10% 10%;
+	grid-template-columns:minmax(300px,90%) 130px;
+}
+
+#emojiButtonsDashboard {
+	display:grid;
+	grid-template-rows:10% auto auto auto 14.2857%;
+	grid-template-columns:1;
+}
+
+.scoresGrid {
+	display:grid;
+	grid-template-rows:auto 14.2857%;
+	grid-template-columns:minmax(300px,90%) minmax(110px,10%);
+}
+
+.emojiButtonsGrid {
+	display:grid;
+	grid-template-rows:1;
+	grid-template-columns:1;
+}
+
+.waitingTimer {
+	background-color:#f1f1f1;
+	font-size:30px;
+	padding:10px;
+	width:300px;
+}
+
+.funFactMode {
+	font-size:1.5vw;
+	margin-left:20%;
+	margin-right:20%;
+	padding:10px;
+	width:60%;
+}
+
+.emojiButton {
+	background-color:#be1e2d;
+	height:78%;
+	width:85%;
+	font-size:3vw;
+	border:none;
+}
+
+.emojiButton:hover {
+	color:#000!important;
+	background-color:#ccc!important;
+}
+
+.scoresDisplay {
+	display:grid;
+	grid-template-rows:auto;
+	grid-template-columns:auto;
+}
+
+.playersListGrid {
+	display:grid;
+	grid-template-rows:7% 7% 7% 7% 7% 7% 7% 7%;
+	grid-template-columns:1;
+}
+
+.playerItem {
+	border-bottom:2px solid #9e9e9e;
+	font-size:1vw;
+}
+
+.donePlayer {
+	font-size:1.5vw;
+	padding:10px;
+	color:#21409a;
+	margin:5px;
+	background-color:#f1f1f1;
+}
+
+.doneTitlesNames {
+	font-size:1.5vw;
+	padding:10px;
+	color:#21409a;
+	margin:5px;
+	background-color:#f1f1f1;
+}
+
+.doneScoresItem {
+	font-size:1.5vw;
+	padding:10px;
+	margin:5px;
+}
+
+.scoreDisplayItem {
+	font-size:18px;
+	padding:1vw;
+	margin:5px;
+	flex-basis:100px;
+	max-height:38px;
+}
+
+#titlesNames {
+	display:flex;
+	justify-content:center;
+	flex-wrap:wrap;
+}
+
+.titleNameStoryBoxClass {
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	flex-direction:column;
+}
+
+/* Sets the containers height and width */
+.base-timer {
+	margin-top:10px;
+	position: relative;
+	height: 100px;
+	width: 100px;
+}
+
+/* Removes SVG styling that would hide the time label */
+.base-timer__circle {
+  fill: none;
+  stroke: none;
+}
+
+/* The SVG path that displays the timer's progress */
+.base-timer__path-elapsed {
+  stroke-width: 7px;
+  stroke: grey;
+}
+
+.base-timer__label {
+	position:absolute;
+	/* Size should match the parent container */
+	width: 100px;
+	height: 100px;
+
+	/* Keep the label aligned to the top */
+	top: 0;
+
+	/* Create a flexible box that centers content vertically and horizontally */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	/* Sort of an arbitrary number; adjust to your liking */
+	font-size: 25px;
+}
+
+.base-timer__path-remaining {
+  /* Just as thick as the original ring */
+  stroke-width: 7px;
+
+  /* Rounds the line endings to create a seamless circle */
+  stroke-linecap: round;
+
+  /* Makes sure the animation starts at the top of the circle */
+  transform: rotate(90deg);
+  transform-origin: center;
+
+  /* One second aligns with the speed of the countdown timer */
+  transition: 1s linear all;
+
+  /* Allows the ring to change color when the color value updates */
+  stroke: currentColor;
+}
+
+.base-timer__svg {
+  /* Flips the svg and makes the animation to move left-to-right */
+  transform: scaleX(-1);
+}
+
+.titleDisplay {
+	font-size:1.15vw;
+	font-weight:bold;
+	background-color:#f1f1f1;
+	margin:5px;
+	padding:5px;
+}
+
+.authorDisplay {
+	font-size:1vw;
+	font-style:italic;
+	background-color:#f1f1f1;
+	margin:5px;
+	padding:5px;
+}
+
+.storyDisplay {
+	font-size:1.1vw;
+	background-color:#f1f1f1;
+	width:60%;
+	margin:10px;
+	padding:10px;
+	text-align:left;
+}
+
+.rightSideGridContainer {
+	display:grid;
+	grid-template-columns:1;
+	grid-template-rows:auto 20%;
+}
+
+.responiveFontSize {
+	font-size:2vw;
+}
+
+.votingDropdown {
+	height:60%;
+	width:60%;
+	margin-left:25%;
+	background-color:#f1f1f1;
+	font-size:1vw;
+	text-align:center;
+}
+
+.rightSideVotingContainer {
+	display:grid;
+	grid-template-columns:1;
+	grid-template-rows:10% 6% auto 6% auto 6% auto 10% 14.2857%;
+}
+
+#questionShortname {
+	font-size:1.3vw;
+	font-style:italic;
+	background-color:#f1f1f1;
+	margin:16px;
+	padding:5px;
+}
+
+#fakeQuestion {
+	font-size:1.4vw;
+	font-weight:bold;
+	background-color:#f1f1f1;
+	margin:5px;
+	padding:5px;
+}
+
+#realAnswer {
+	font-size:1.2vw;
+	margin:3px;
+	background-color:#f1f1f1;
+	padding:5px;
+}
+
+#realQuestion {
+	font-size:1.4vw;
+	font-weight:bold;
+	background-color:#f1f1f1;
+	margin:5px;
+	padding:5px;
+}
+
+#votingContainer {
+	display:flex;
+	justify-content:center;
+}
+
+#listPlayers {
+	display:flex;
+	justify-content:center;
+}
+
+#round8 {
+	display:flex;
+	justify-content:center;
+	flex-direction:column;
+	align-items:center;
+}
+
+#questionDisplayFlexBox {
+	display:flex;
+	justify-content:center;
+	flex-direction:column;
+	align-items:center;
+	width:90%;
+	margin-left:5%;
+}
+
+.initialStartGrid {
+	width:100%;
+	margin: 20px 30px 30px 30px;
+	grid-gap:20px 10%;
+	display:grid;
+	grid-template-rows:2;
+	grid-template-columns:60% 30%;
+}
+
+.col1-row1 {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.col1-row2 {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+.col1-row3 {
+	grid-column: 1;
+	grid-row: 3;
+}
+
+.col1-row4 {
+	grid-column: 1;
+	grid-row: 4;
+}
+
+.col1-row5 {
+	grid-column: 1;
+	grid-row: 5;
+}
+
+.col1-row6 {
+	grid-column: 1;
+	grid-row: 6;
+}
+
+.col1-row7 {
+	grid-column: 1;
+	grid-row: 7;
+}
+
+.col1-row8 {
+	grid-column: 1;
+	grid-row: 8;
+}
+
+.col1-row9 {
+	grid-column: 1;
+	grid-row: 9;
+}
+
+.col2-row1 {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.col2-row2 {
+	grid-column: 2;
+	grid-row: 2;
+}
+
+.col2-row3 {
+	grid-column: 2;
+	grid-row: 3;
+}
+
+.col2-row4 {
+	grid-column: 2;
+	grid-row: 4;
+}
+
+.col2-row5 {
+	grid-column: 2;
+	grid-row: 5;
+}
+
+.col2-row6 {
+	grid-column: 2;
+	grid-row: 6;
+}
+
+.col2-row7 {
+	grid-column: 2;
+	grid-row: 7;
+}
+
+.autoMargin {
+	margin:auto;
+}
+
+.centerText {
+	text-align:center;
+}
+
+html,body{
+	font-family:Tahoma,sans-serif;
+	font-size:18px;
+	line-height:1.5;
+	height:100%;
+	overflow:hidden;
+}
+
+li {
+	list-style-type:none;
+}
+
+a, a:visited {
+	color:#000;
+}
+
+select {
+  // A reset of styles, including removing the default dropdown arrow
+  appearance: none;
+  // Additional resets for further consistency
+  background-color: transparent;
+  border: none;
+  font-size:1.1vw;
+}
+
+.pbr-text-small {font-size:13px;}
+.pbr-text-large {font-size:75px;}
+.alba {font-family: alba;}
+.pbr-text-red,.pbr-hover-text-red:hover{color:#be1e2d!important}
+.pbr-light-red {
+	background-color:#e76572;
+}
+.pbr-light-blue {
+	background-color:#5778db;
+}
+.pbr-light-yellow {
+	background-color:#ffe866;
+}
+.pbr-text-yellow,.pbr-hover-text-yellow:hover{color:#ffde17!important}
+.pbr-text-blue,.pbr-hover-text-blue:hover{color:#21409a!important}
+.pbr-yellow,.pbr-hover-yellow:hover{color:#000!important;background-color:#ffde17!important}
+.pbr-blue,.pbr-hover-blue:hover{color:#000!important;background-color:#21409a!important}
+.pbr-grey,.pbr-hover-grey:hover{color:#000!important;background-color:#f1f1f1!important}
+
+/* here is the style for the slider toggle buttons */
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 45px;
+  height: 25.5px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 19.5px;
+  width: 19.5px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #21409a;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #21409a;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(19.5px);
+  -ms-transform: translateX(19.5px);
+  transform: translateX(19.5px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 25.5px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+*:focus {
+    outline: none;
+}

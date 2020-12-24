@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html>
+<title>palabr.io</title>
+<link rel='icon' href='/client/palabricon.png'>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href='/client/palabristyle.css'>
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script> 
+
+	var socket = io();
+	var playerCounter = 0 
+
+	var create_lobby = function() {
+		document.getElementById('errorMsg').style.display = 'none';
+		var username = document.getElementById("username").value;
+		if (username != '') {
+			socket.emit('createLobby', {username});
+			document.getElementById('shortnameID').innerHTML = username
+			document.getElementById("btnLobby").disabled = 'disabled';
+			document.getElementById('btnJoinExisting').style.display = 'none';
+			document.getElementById('joinCode').style.display = 'none';
+			document.getElementById('btnLobby').style.display = 'none';
+			document.getElementById('startGame').style.display = 'block';
+		} else {
+			changeError('Please submit a username');
+		}
+	};
+
+	var join_game = function() {
+		document.getElementById('errorMsg').style.display = 'none';
+		var gamecode = document.getElementById("joinCode").value;
+		var username = document.getElementById("username").value;
+		if (username != '') {
+			if (gamecode != '') {
+				socket.emit('joinGame', {gamecode, username});
+				document.getElementById('shortnameID').innerHTML = username
+			} else {
+				changeError('Please submit a Game ID');
+			}
+		} else {
+			changeError('Please submit a username');
+		}
+		
+	};
+
+	var copy_code = function() {
+		var tempInput = document.createElement("input");
+		var gamecode = document.getElementById('shareCode').innerHTML;
+		gamecode = gamecode.replace('Game ID: ', '');
+	  	tempInput.value = gamecode;
+	  	document.body.appendChild(tempInput);
+	  	tempInput.select();
+	  	document.execCommand("copy");
+	  	document.body.removeChild(tempInput);
+	  	document.getElementById('copyGameCode').innerHTML = 'Copied!';
+	};
+
+	var start_game = function() {
+		var familyStatus = document.getElementById('familyFilter').checked
+		var getToKnowYouStatus = document.getElementById('getToKnowYouFilter').checked
+		socket.emit('startGame', {familyStatus, getToKnowYouStatus});
+	};
+
+	var send_ans = function() {
+
+		var answer1 = document.getElementById("answer1").value;
+		var answer2 = document.getElementById("answer2").value;
+		var answer3 = document.getElementById("answer3").value;
+
+		if (document.getElementById('timeOut').innerHTML == 'false') {
+			stopTimer();
+		}
+
+		if ((answer1 == '' || answer2 == '' || answer3 == '') && (document.getElementById('timeOut').innerHTML != 'true')) {
+			document.getElementById('needAnswers').style.display = 'block';
+		} else {
+
+			if (document.getElementById('timeOut').innerHTML == 'true') {
+
+				if (answer1 == '') {
+					answer1 = document.getElementById('cannedAnswer1').innerHTML
+				}
+
+				if (answer2 == '') {
+					answer2 = document.getElementById('cannedAnswer2').innerHTML
+				}
+
+				if (answer3 == '') {
+					answer3 = document.getElementById('cannedAnswer3').innerHTML
+				}
+
+				document.getElementById('timeOut').innerHTML == 'false'
+			} 
+
+			socket.emit('receiveAnswers', {answer1, answer2, answer3});
+			document.getElementById('round1').style.display = 'none';
+			document.getElementById('waitingScreen').style.display = 'inherit';
+			document.getElementById('instructions').innerHTML = 'That wasn\'t too difficult, now was it?'
+		};
+
+	};
+
+	var send_questions = function() {
+		var question1 = document.getElementById('question11').value;
+		var question2 = document.getElementById('question21').value;
+		var question3 = document.getElementById('question31').value;
+
+		if (document.getElementById('timeOut').innerHTML == 'false') {
+			stopTimer();
+		}
+
+		if ((question1 == '' || question2 == '' || question3 == '') && document.getElementById('timeOut').innerHTML != 'true') {
+			document.getElementById('needAnswers1').style.display = 'inherit';
+		} else {
+			if (question1 == '') {
+				question1 = 'No question submitted. :('
+			}
+
+			if (question2 == '') {
+				question2 = 'No question submitted. :('
+			}
+
+			if (question3 == '') {
+				question3 = 'No question submitted. :('
+			}
+
+			document.getElementById('timeOut').innerHTML = 'false'
+
+			socket.emit('submitQuestions', {question1, question2, question3});
+			document.getElementById('round6').style.display = 'none';
+			document.getElementById('waitingScreen').style.display = 'inherit';
+			document.getElementById('instructions').innerHTML = 'Good job, you\'re all done with the difficult stuff.'
+		}
+	};
+
+	var nextQuestion = function() {
+		socket.emit('goToNextQuestion')
+	}
+
+	var send_story = function() {
+
+		var story = document.getElementById('story').value;
+		var story_title = document.getElementById('storyTitle').value;
+
+		if (document.getElementById('timeOut').innerHTML == 'false') {
+			stopTimer();
+		}
+
+		if (story == '' && document.getElementById('timeOut').innerHTML != 'true') {
+			document.getElementById('needInfo').innerHTML = 'Please write a story.'
+			document.getElementById("needInfo").style.display = 'block';
+		} else if (story_title == '' && document.getElementById('timeOut').innerHTML != 'true') {
+			document.getElementById('needInfo').innerHTML = 'Please title your story.'
+			document.getElementById("needInfo").style.display = 'block';
+		} else {
+			if (document.getElementById('timeOut').innerHTML == 'true') {
+				if (story_title == '') {
+					story_title = 'No title submitted'
+				}
+
+				if (story == '') {
+					story = 'No story submitted'
+				}
+
+				document.getElementById('timeOut').innerHTML == 'false'
+			}
+
+			socket.emit('receiveStory', {story, story_title});
+			document.getElementById('round2').style.display = 'none';
+			document.getElementById('waitingScreen').style.display = 'inherit';
+			document.getElementById('instructions').innerHTML = 'Wow, you actually had to be creative. Who convinced you to play this, anyway?'
+		}
+	};
+
+	var doneWithScores = function() {
+		socket.emit('doneWithScores');
+		document.getElementById('round5').style.display = 'none';
+		document.getElementById('waitingScreen').style.display = 'inherit';
+	}
+
+	var start_making_questions = function() {
+		socket.emit('beginMakingQuestions');
+	}
+
+	socket.on('receiveCannedAnswer', function(data) {
+		var canned1 = data.listRands[0]
+		var canned2 = data.listRands[1]
+		var canned3 = data.listRands[2]
+		document.getElementById('cannedAnswer1').innerHTML = canned1
+		document.getElementById('cannedAnswer2').innerHTML = canned2
+		document.getElementById('cannedAnswer3').innerHTML = canned3
+	})
+
+	socket.on('changingHTML', function() {
+		document.getElementById('startMenu').style.display = 'none';
+		document.getElementById('headerBig').style.display = 'none';
+		document.getElementById('credits').style.display = 'none';
+		document.getElementById('gameMenu').style.display = 'block';
+		document.getElementById('headerSmall').style.display = 'inline';
+		document.getElementById('gameSettings').style.display = 'inherit';
+	});
+
+	socket.on('serverMsg', function(data) {
+
+		var errorElement = document.getElementById('errorMsg')
+		errorElement.style.display = 'block';
+
+		switch(data.message) {
+
+			case 'error1':
+				errorElement.innerHTML = 'Error: this game does not exist';
+				break;
+			case 'error2':
+				errorElement.innerHTML = 'Error: already in a game';
+				break;
+			case 'error3':
+				errorElement.innerHTML = 'Error: need at least 4 players to start the game';
+				break;
+			case 'error4':
+				errorElement.innerHTML = 'Error: this game is full';
+				break;
+			case 'error5':
+				errorElement.innerHTML = 'Error: this username is already taken';
+				break;
+			default:
+				console.log(data.message);
+		}
+	});
+
+	socket.on('showID', function(data) {
+		document.getElementById('shareCode').style.display = 'block';
+		document.getElementById('shareCode').innerHTML = 'Game ID: ' + data.gameId;
+		document.getElementById('copyGameCode').style.display = 'block';
+	});
+
+	socket.on('joinedLobby', function(data) {
+		document.getElementById('welcomeText').style.display = 'none';
+		document.getElementById('startInputInfo').style.display = 'none';
+		document.getElementById('optionsInstructions').style.display = 'none';
+		document.getElementById('lobbyJoin').style.display = 'block';
+		document.getElementById('lobbyJoin').innerHTML = 'Joined lobby. Please wait for the host to start the game.'
+	});
+
+	socket.on('transferHost', function(data) {
+
+		document.getElementById('welcomeText').style.display = 'inherit';
+		document.getElementById('startInputInfo').style.display = 'grid';
+		document.getElementById('optionsInstructions').style.display = 'inherit';
+		document.getElementById('lobbyJoin').style.display = 'none';
+
+		document.getElementById("btnLobby").disabled = 'disabled';
+		document.getElementById('btnJoinExisting').style.display = 'none';
+		document.getElementById('joinCode').style.display = 'none';
+		document.getElementById('btnLobby').style.display = 'none';
+		document.getElementById('startGame').style.display = 'block';
+
+		document.getElementById('shareCode').style.display = 'block';
+		document.getElementById('shareCode').innerHTML = 'Game ID: ' + data.gameID;
+		document.getElementById('copyGameCode').style.display = 'block';
+
+	})
+
+	socket.on('playerUpdate', function(data) {
+		document.getElementById('playersList').style.display = 'block';
+		document.getElementById('playersList').innerHTML = 'Players in lobby: ' + data.others_list;
+	});
+
+	socket.on('addQuestions', function(data) {
+		document.getElementById('question1').innerHTML = data.question1
+		document.getElementById('question2').innerHTML = data.question2
+		document.getElementById('question3').innerHTML = data.question3
+		initializeTimer(60, send_ans, "countdownTimerRound1", false, "base-timer-path-remaining");
+	});
+
+	socket.on('startRoundDelay', function(data) {
+		const waitingList = document.getElementById('listPlayers')
+		while (waitingList.firstChild) {
+			waitingList.removeChild(waitingList.firstChild);
+		}
+		var realFunctionCall = window[data.function_call_when_done];
+		initializeTimer(5, realFunctionCall, 'waitingText', true, "dummy")
+	});
+
+	function start_story_rd() {
+		socket.emit('startStoryRound')
+	}
+
+	socket.on('updateGhostPlayer', function(data) {
+		const listOfPlayers = document.getElementById('playersListContainer').childNodes
+		for (var i = 0; i < listOfPlayers.length; i++) {
+			if (listOfPlayers[i].innerHTML == data.ShortName) {
+				var actualID = listOfPlayers[i].id
+				document.getElementById(actualID).innerHTML = data.ShortName + " (ghost)"
+				document.getElementById(actualID).style.fontStyle = 'italic'
+				alert("Player " + data.ShortName + " has left the game.")
+				//update the id with ghost
+			}
+		}
+	})
+
+	socket.on('addPlayers', function(data) {
+		playerCounter += 1;
+		var htmlID = 'player' + playerCounter;
+		var newElement = document.createElement('A');
+		newElement.innerHTML = data.shortName;
+		newElement.setAttribute('id',htmlID);
+		newElement.setAttribute('style','grid-column: 1;grid-row:' + playerCounter);
+		newElement.setAttribute('class','playerItem');
+		document.getElementById('playersListContainer').appendChild(newElement);
+	});
+
+	socket.on('takeAnswers', function(data) {
+		const waitingList = document.getElementById('listPlayers')
+		while (waitingList.firstChild) {
+			waitingList.removeChild(waitingList.firstChild);
+		}
+
+		document.getElementById('waitingScreen').style.display = 'none';
+		document.getElementById('round2').style.display = 'inherit';
+		document.getElementById('useAnswers').innerHTML = data.dispAnswer1 + ", " + data.dispAnswer2 + ", " + data.dispAnswer3
+		document.getElementById('instructions').innerHTML = 'Here is the tricky part. Incorporate these answers from your friends to write a story. Good luck!'
+		initializeTimer(180, send_story, "countdownTimerRound2", false, "base-timer-path-remaining1");
+	});
+
+	socket.on('displayStory', function(data) {
+		const waitingList = document.getElementById('listPlayers')
+		while (waitingList.firstChild) {
+			waitingList.removeChild(waitingList.firstChild);
+		}
+
+		document.getElementById('instructions').innerHTML = 'Let\'s see how bad your friends\' stories are.'
+		document.getElementById('waitingScreen').style.display = 'none';
+		document.getElementById('round3').style.display = 'inherit';
+		document.getElementById('titleStory').innerHTML = data.story_title
+		document.getElementById('storyAuthor').innerHTML = 'By: ' + data.shortName
+		document.getElementById('storyDisplay').innerHTML = data.story
+	});
+
+	socket.on('displayScores', function(data) {
+		const waitingList = document.getElementById('listPlayers')
+		while (waitingList.firstChild) {
+			waitingList.removeChild(waitingList.firstChild);
+		}
+
+		if (data.lastRoundBoolean) {
+			document.getElementById('scoresContinue').style.display = 'none';
+			document.getElementById('round7').style.display = 'none';
+			document.getElementById('instructions').innerHTML = 'Great job to everyone except last place!'
+		} else {
+			document.getElementById('instructions').innerHTML = 'It\'s a scientific fact that at least one of you is actually mad that you\'re not winning this party game.'
+		}
+
+		document.getElementById('waitingScreen').style.display = 'none';
+
+		var playersScores = data.scores
+		var lastScore = 'first'
+		var counter = 1
+
+		for (let player in playersScores) {
+
+			var newElement = document.createElement('A');
+			newElement.innerHTML = player + ": " + playersScores[player]
+
+			if (lastScore == 'first') {
+				lastScore = playersScores[player]
+			} else {
+				if (lastScore == playersScores[player]) {
+					counter -= 1
+				}
+			}
+
+			switch (counter) {
+				case 1:
+					newElement.setAttribute('style', 'background-color:#FFD700')
+					break;
+				case 2:
+					newElement.setAttribute('style', 'background-color:#C0C0C0')
+					break;
+				case 3:
+					newElement.setAttribute('style', 'background-color:#cd7f32')
+					break;
+				default:
+					break;
+			}
+
+			newElement.setAttribute('class', 'doneScoresItem card')
+			document.getElementById('votingContainer').appendChild(newElement)
+
+			counter += 1
+			lastScore = playersScores[player]
+
+		};
+
+		document.getElementById('round5').style.display = 'inherit';
+	});
+
+	socket.on('addScoringContinue', function(data) {
+		document.getElementById('scoresContinue').style.display = 'inherit';
+	});
+
+	socket.on('addFinalScreenContinue', function() {
+		document.getElementById('finalScreenContinue').style.display = 'inherit';
+	});
+
+	socket.on('startMakingQuestions', function(data) {
+		const waitingList = document.getElementById('listPlayers')
+		while (waitingList.firstChild) {
+			waitingList.removeChild(waitingList.firstChild);
+		}
+
+		const votingLists = document.getElementById('votingContainer')
+		while (votingLists.firstChild) {
+			votingLists.removeChild(votingLists.firstChild);
+		}
+		
+		document.getElementById('waitingScreen').style.display = 'none';
+
+		document.getElementById('answer11').innerHTML = data.ans1
+		document.getElementById('answer21').innerHTML = data.ans2
+		document.getElementById('answer31').innerHTML = data.ans3
+
+		document.getElementById('instructions').innerHTML = 'Here we go. Now you\'re going to write questions that would make these answers sound ridiculous.'
+		document.getElementById('round6').style.display = 'inherit';
+		initializeTimer(60, send_questions, "countdownTimerRound6", false, "base-timer-path-remaining2");
+	});
+
+	socket.on('displayQuestions', function(data) {
+
+		const waitingList = document.getElementById('listPlayers')
+		while (waitingList.firstChild) {
+			waitingList.removeChild(waitingList.firstChild);
+		}
+
+		document.getElementById('waitingScreen').style.display = 'none';
+		document.getElementById('instructions').innerHTML = 'Send an emoji for how funny you think everyone\'s questions were. Or don\'t, if they weren\'t funny.'
+
+		document.getElementById('spotlightID').innerHTML = data.senderPlayer
+		// document.getElementById('questionShortname').innerHTML = data.senderShortname
+		document.getElementById('fakeQuestion').innerHTML = '<span style="color:black;font-style:italic;font-weight:400;">' + data.senderShortname + "'s question: " + "</span>" + data.fakeQuestion
+		document.getElementById('realAnswer').innerHTML = '<span style="color:black;font-style:italic;">' + data.answererShortname + "'s answer: " + "</span>" + data.realAnswer
+		document.getElementById('realQuestion').innerHTML = data.realQuestion
+
+		if (data.senderShortname == document.getElementById('shortnameID').innerHTML) {
+			document.getElementById('votingButton1').disabled = true;
+			document.getElementById('votingButton2').disabled = true;
+			document.getElementById('votingButton3').disabled = true;
+		} else {
+			document.getElementById('votingButton1').disabled = false;
+			document.getElementById('votingButton2').disabled = false;
+			document.getElementById('votingButton3').disabled = false;
+		}
+
+		document.getElementById('round7').style.display = 'inherit';
+
+	})
+
+	socket.on('addContinueQuestionButton', function() {
+		document.getElementById('continueButtonQuestion').style.display = 'inherit';
+	});
+
+	socket.on('displayStoryVoting', function(data) {
+		document.getElementById('round3').style.display = 'none';
+
+		for (var i = 0; i < data.storiesList.length; i++) {
+
+			var author = data.storiesList[i][1];
+			var title = data.storiesList[i][0];
+
+			if (author != data.client_shortname) {
+				//only if the player is not the client itself
+
+				var dropDownItem = document.createElement('OPTION');
+				dropDownItem.innerHTML = author
+
+				var dropDownItem1 = document.createElement('OPTION');
+				dropDownItem1.innerHTML = author
+
+				var dropDownItem2 = document.createElement('OPTION');
+				dropDownItem2.innerHTML = author
+
+				document.getElementById('firstDropdown').appendChild(dropDownItem);
+				document.getElementById('secondDropdown').appendChild(dropDownItem1);
+				document.getElementById('thirdDropdown').appendChild(dropDownItem2);
+			}
+
+			var titleAuthorElement = document.createElement('A');
+			titleAuthorElement.innerHTML = title + " by: " + author
+			titleAuthorElement.setAttribute('class', 'doneTitlesNames card')
+			document.getElementById('titlesNames').appendChild(titleAuthorElement)
+
+		};
+
+		document.getElementById('instructions').innerHTML = 'You\'ve got three votes—who was best, who was worst, and who was just okay?'
+		document.getElementById('round4').style.display = 'inherit';
+
+	});
+
+	function submitStoryVotes() {
+		var op1 = document.getElementById('firstDropdown');
+		var op2 = document.getElementById('secondDropdown');
+		var op3 = document.getElementById('thirdDropdown');
+
+		var place1 = op1.options[op1.selectedIndex].value;
+		var place2 = op2.options[op2.selectedIndex].value;
+		var place3 = op3.options[op3.selectedIndex].value;
+
+		socket.emit('addVotes', {place1, place2, place3})
+		document.getElementById('round4').style.display = 'none';
+		document.getElementById('instructions').innerHTML = 'I bet you won.'
+		document.getElementById('waitingScreen').style.display = 'inherit';
+	};
+
+	socket.on('addContinueButton', function(data) {
+		document.getElementById('continueButton').style.display = 'inherit';
+	});
+
+	function nextStory() {
+		socket.emit('continueDisplayStory')
+	};
+
+	function doneWithGame() {
+		socket.emit('gameOver')
+	};
+
+	socket.on('finishGame', function(data) {
+		document.getElementById('round5').style.display = 'none';
+		document.getElementById('winningStory').innerHTML = data.winningStory;
+		document.getElementById('winningStoryTitle').innerHTML = data.winningStoryTitle;
+		document.getElementById('winningStoryShortname').innerHTML = "By: " + data.winningStoryShortname;
+		document.getElementById('round8').style.display = 'inherit';
+		document.getElementById('instructions').innerHTML = 'Here\'s what your winner wrote. Could be better...'
+	});
+
+	function send_emoji(score) {
+		var spotlightPlayer = document.getElementById('spotlightID').innerHTML;
+		socket.emit('emojiButtonPress', {score, spotlightPlayer})
+		document.getElementById('votingButton1').disabled = true;
+		document.getElementById('votingButton2').disabled = true;
+		document.getElementById('votingButton3').disabled = true;
+	};
+
+	socket.on('donePlayers', function(data) {
+		if (data.first_bool == true) {
+			document.getElementById('waitingText').setAttribute('class', 'col1-row1 autoMargin card funFactMode')
+			document.getElementById('waitingText').innerHTML = 'Did you know? ' + data.fun_fact;
+		}
+
+		var newElement = document.createElement('A');
+		newElement.innerHTML = data.shortName;
+		newElement.setAttribute('id',data.shortName);
+		newElement.setAttribute('class','donePlayer card');
+		document.getElementById('listPlayers').appendChild(newElement);
+	});
+
+	function changeError(errorMessage) {
+		var errorElement = document.getElementById('errorMsg');
+		errorElement.style.display = 'block';
+		errorElement.innerHTML = errorMessage;
+	};
+
+	function initializeTimer(timeLeft, callbackFunction, timerID, waitingBool, timer_path_remaining) {
+		stopTimer();
+		var timePassed = 0
+
+		if (waitingBool) {
+			document.getElementById(timerID).setAttribute('class', 'col1-row1 autoMargin card waitingTimer pbr-text-blue')
+    		document.getElementById(timerID).innerHTML = 'Starting round in ' + timeLeft + '...'
+    	} else {
+    		document.getElementById(timerID).innerHTML = formatTimeLeft(timeLeft);
+    	}
+
+		startTimer(timeLeft, timePassed, timeLeft, callbackFunction, timerID, waitingBool, timer_path_remaining);
+	}
+
+	var timerInterval = null;
+	
+	function startTimer(amountOfTime, timePassed, timeLeft, callbackFunction, timerID, waitingBool, timer_path_remaining) {
+	  	timerInterval = setInterval(() => {
+	  		
+	  		console.log('still running!')
+		    // The amount of time passed increments by one
+		    timePassed = timePassed += 1;
+		    timeLeft = amountOfTime - timePassed;
+		    setCircleDasharray(timeLeft, amountOfTime, timer_path_remaining);
+		    
+		    // The time left label is updated
+		    if (timeLeft == 0) {
+		    	if (waitingBool) {
+		    		document.getElementById(timerID).innerHTML = ''
+		    		document.getElementById(timerID).setAttribute('class', 'col1-row1 autoMargin card funFactMode')
+		    	} else {
+		    		document.getElementById('timeOut').innerHTML = 'true'
+		    	}
+		    	
+		    	clearInterval(timerInterval);
+		    	callbackFunction();
+		    } else {
+		    	if (waitingBool) {
+		    		document.getElementById(timerID).innerHTML = 'Starting round in ' + timeLeft + '...'
+		    	} else {
+		    		timeLeft = formatTimeLeft(timeLeft)
+		    		document.getElementById(timerID).innerHTML = timeLeft;
+		    	}
+		    }
+
+		}, 1000);
+	}
+
+	function formatTimeLeft(time) {
+		// The largest round integer less than or equal to the result of time divided being by 60.
+		const minutes = Math.floor(time / 60);
+
+		// Seconds are the remainder of the time divided by 60 (modulus operator)
+		let seconds = time % 60;
+
+		// If the value of seconds is less than 10, then display seconds with a leading zero
+		if (seconds < 10) {
+			seconds = `0${seconds}`;
+		}
+
+		// The output in MM:SS format
+		return `${minutes}:${seconds}`;
+	};
+
+	// Divides time left by the defined time limit.
+	function calculateTimeFraction(timeLeft, TIME_LIMIT) {
+		const rawTimeFraction = timeLeft / TIME_LIMIT;
+  		return rawTimeFraction - (1 / TIME_LIMIT) * (1 - rawTimeFraction);
+	}
+
+	// Update the dasharray value as time passes, starting with 283
+	function setCircleDasharray(timeLeft, amountOfTime, timer_path_remaining) {
+	  const circleDasharray = `${(calculateTimeFraction(timeLeft, amountOfTime) * 283).toFixed(0)} 283`;
+	  document.getElementById(timer_path_remaining).setAttribute("stroke-dasharray", circleDasharray);
+	}
+
+	function stopTimer() {
+		clearInterval(timerInterval);
+	}
+
+	function toggleSettings() {
+		var menu = document.getElementById('settingsMenu');
+		if (menu.style.display === "none") {
+			menu.style.display = "grid";
+			document.getElementById('showGameSettings').innerHTML = 'Hide options';
+		} else {
+			menu.style.display = "none";
+			document.getElementById('showGameSettings').innerHTML = 'Options';
+		}
+	}
+
+	function showInstructions() {
+		var instructions = document.getElementById('howToPlay');
+
+		if (instructions.style.display === "none") {
+			instructions.style.display = "inherit";
+			document.getElementById('showGameInstructions').innerHTML = 'Hide instructions'
+		} else {
+			instructions.style.display = "none";
+			document.getElementById('showGameInstructions').innerHTML = 'Instructions'
+		}
+	}
+
+</script>
+
+<body>
+	<div id='forDevEyesOnly' style='display:none;'>
+		<a id='timeOut'>false</a>
+		<a id='dummy'></a>
+		<a id='shortnameID'></a>
+		<a id='cannedAnswer1'></a>
+		<a id='cannedAnswer2'></a>
+		<a id='cannedAnswer3'></a>
+	</div>
+<!-- 	<input id='gameSettings' type='image' onclick='toggleSettingsInGame()' src='http://localhost:2000/client/settings_gear_small.png' style='position:absolute;right:0;margin-top:0;margin-right:10px;display:none;'> -->
+	<div id='headerBig' class='titleBig'>
+		<a href='http://localhost:2000/'class= 'pbr-text-large alba' style='text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
+	</div>
+
+	<div id='headerSmall' class='titleSmall' style='display: none;'>
+		<a href='http://localhost:2000/'class= 'alba' style='text-align:left;text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
+	</div>
+
+	<div id='startMenu' class='card menuStart'>
+		<a id='welcomeText' class='boxText'>Come flex your creative muscles and get to know your friends! Click the button below to create a private game, or input a game ID to join an existing one.</a>
+
+		<div id='startInputInfo' class='initialStartGrid'>
+			<input id = 'username' placeholder = 'Username' class='inputBox col1-row1' maxlength="12"></input>
+			<button id = 'btnLobby' onclick="create_lobby()" class='pbr-yellow button col2-row1'>Create Game</button>
+			<button id = 'startGame' onclick="start_game()" class='pbr-yellow button col2-row1' style = "display: none;">Start Game</button>
+			<input id = 'joinCode' placeholder = 'Game ID' class='inputBox col1-row2'></input>
+			<a id = 'shareCode' class= 'pbr-text-blue col1-row2 centerText' style = 'display: none'></a>
+			<button id = 'btnJoinExisting' onclick="join_game()" class='pbr-yellow button col2-row2'>Join Game</button>
+			<button id = 'copyGameCode' onclick='copy_code()' class='pbr-grey button col2-row2' style='display:none;'>Copy Code</button>
+		</div>
+
+		<a id ='lobbyJoin' class='pbr-text-blue centerText' style = 'display: none;flex-grow:1;margin:20px 20px 20px 20px;width:100%'></a>
+		<a id = 'playersList' class= 'pbr-text-blue centerText' style = 'display: none;flex-grow:1;margin:0px 20px 20px 20px;width:100%'></a>
+		<a id = 'errorMsg' class= 'pbr-text-red centerText' style = 'display: none;flex-grow:1;margin:0px 20px 20px 20px;width:100%'></a>
+
+		<a id='howToPlay' class='pbr-text-blue' style='padding:0px 20px 20px 20px;display:none;font-size:14px;'>Palabr.io has three rounds. For the first round, you will answer three questions. Next, you will receive the answers from another player and you will incorporate those into a story. After voting on who was best, you will take those answers you received and you will write questions that make the answers sound ridiculous.</a>
+
+		<div id='settingsMenu' class='settingsMenu' style='display:none;padding:10px;'>
+			<label class='switch col2-row1'>
+				<input id='familyFilter' type='checkbox' checked >
+				<span class='slider round'></span>
+			</label>
+			<a class='pbr-text-blue' style='grid-column:3;grid-row:1;'>Family-friendly filter</a>
+			<label class='switch col2-row2'>
+				<input id='getToKnowYouFilter' type='checkbox'>
+				<span class='slider round'></span>
+			</label>
+			<a class='pbr-text-blue' style='grid-column:3;grid-row:2;'>Get-to-know-you mode</a>
+		</div>
+
+		<div id='optionsInstructions' style='margin:auto;margin-bottom:10px;'>
+			<button id='showGameSettings' class='buttonLink' onclick='toggleSettings()' style='color:#686868'>Options</button>
+			<button id='showGameInstructions' onclick='showInstructions()' class='buttonLink' style='color:#686868'>Instructions</button>
+		</div>
+
+	</div>
+
+	<div id='gameMenu' class='card menuGame' style='display: none;min-height:450px;min-width:800px;'>
+		<div class= 'gameMenuGrid'>
+
+			<div id='instructionsContainer' style='grid-column: 1 / 3;grid-row: 1;text-align: center; padding: 1.5% 0;border-bottom:2px solid #9e9e9e;'>
+				<a id='instructions'>To start, just answer these three questions and hit submit when you're done. Easy peasy.</a>
+			</div>
+
+			<div id='playersListContainer' class='playersListGrid col1-row2 centerText' style='border-right:2px solid #9e9e9e;'>
+
+			</div>
+
+			<div id='waitingScreen' class='waitingGrid col2-row2' style='display:none;'>
+				<a id='waitingText' class='col1-row1 autoMargin card funFactMode'></a>
+				<div id='listPlayers' class='col1-row2 autoMargin'></div>
+			</div>
+
+			<div id='round1' class='questionsRoundGrid col2-row2 centerText'>
+				<a id='question1' class= 'pbr-text-blue col1-row1 autoMargin'></a>
+				<input id='answer1' class='inputGame col1-row2'></input>
+				<a id='question2' class= 'pbr-text-blue col1-row3 autoMargin'></a>
+				<input id='answer2' class='inputGame col1-row4'></input>
+				<a id='question3' class= 'pbr-text-blue col1-row5 autoMargin'></a>
+				<input id='answer3' class='inputGame col1-row6'></input>
+				<a id='needAnswers' class='pbr-text-red col1-row7' style='display:none;'>Please answer all the questions.</a>
+				<div class='rightSideGridContainer' style='grid-column:2;grid-row:1 / 8'>
+
+					<div class="base-timer">
+						<svg class="base-timer__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+							<g class="base-timer__circle">
+							  <circle class="base-timer__path-elapsed" cx="50" cy="50" r="45" />
+							  <path id="base-timer-path-remaining" stroke-dasharray="283" class="base-timer__path-remaining" style='color:green;'
+						        d="
+						          M 50, 50
+						          m -45, 0
+						          a 45,45 0 1,0 90,0
+						          a 45,45 0 1,0 -90,0
+						        "
+						      ></path>
+							</g>
+						</svg>
+						<span>
+							<a id='countdownTimerRound1' class='col1-row1 base-timer__label'></a>
+						</span>
+					</div>
+					<button id='submitButton' onclick="send_ans()" class='pbr-yellow button col1-row2' style='height:35px;width:80px'>Submit</button>
+				</div>
+			</div>
+
+			<div id='round2' class='storyRoundGrid col2-row2 centerText' style='display: none;'>
+				<a id='useAnswers' class='pbr-text-blue col1-row1 autoMargin'></a>
+				<textarea id='story' class='inputStory col1-row2'></textarea>
+				<input id='storyTitle' placeholder='story title' class='inputGame col1-row3'style='font-size:15px;width:50%;margin-left:25%;'></input>
+				<a id='needInfo' class='pbr-text-red col1-row4' style='display:none;'></a>
+
+				<div class='rightSideGridContainer' style='grid-column:2;grid-row:1 / 5'>
+
+					<div class="base-timer">
+						<svg class="base-timer__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+							<g class="base-timer__circle">
+							  <circle class="base-timer__path-elapsed" cx="50" cy="50" r="45" />
+							  <path id="base-timer-path-remaining1" stroke-dasharray="283" class="base-timer__path-remaining" style='color:green;'
+						        d="
+						          M 50, 50
+						          m -45, 0
+						          a 45,45 0 1,0 90,0
+						          a 45,45 0 1,0 -90,0
+						        "
+						      ></path>
+							</g>
+						</svg>
+						<span>
+							<a id='countdownTimerRound2' class='col1-row1 base-timer__label'></a>
+						</span>
+					</div>
+					<button id='submitButton' onclick="send_story()" class='pbr-yellow button col1-row2' style='height:35px;width:80px'>Submit</button>
+				</div>
+
+			</div>
+
+			<div id='round3' class='storyDisplayGrid col2-row2 centerText'style='display: none;'>
+				<div id='titleNameStoryBox' class='col1-row1 titleNameStoryBoxClass'>
+					<a id='titleStory' class = 'titleDisplay card'></a>
+					<a id='storyAuthor' class='authorDisplay card'></a>
+					<a id='storyDisplay' class='storyDisplay card'></a>
+				</div>
+				<button id='continueButton' onclick='nextStory()' class='pbr-yellow button col2-row2' style='height:35px;width:90px;display: none;'>Continue</button>
+			</div>
+
+			<div id='round4' class='storyVotingDisplayGrid col2-row2 centerText'style='display: none;'>
+				<div id='titlesNames' class='autoMargin'style='grid-column:1;grid-row:1'></div>
+
+				<div class='rightSideVotingContainer' style='grid-column:2;grid-row:1'>
+					<a class='col1-row1'></a>
+					<a id = 'firstTitle' class='pbr-text-blue col1-row2 autoMargin'>1st</a>
+					<select id='firstDropdown' class='col1-row3 votingDropdown autoMargin'></select>
+					<a id = 'secondTitle' class='pbr-text-blue col1-row4 autoMargin'>2nd</a>
+					<select id='secondDropdown' class='col1-row5 votingDropdown autoMargin'></select>
+					<a id = 'thirdTitle' class='pbr-text-blue col1-row6 autoMargin'>3rd</a>
+					<select id='thirdDropdown' class='col1-row7 votingDropdown autoMargin'></select>
+					<a class='col1-row8'></a>
+					<button id='submitStoryVotes' onclick='submitStoryVotes()' class='pbr-yellow button col1-row9' style='height:35px;width:80px;margin-left:40%'>Submit</button>
+				</div>
+			</div>
+
+			<div id='round5' class='scoresGrid col2-row2 centerText' style='display: none'>
+				<div id='votingContainer' class='col1-row1 autoMargin'></div>
+				<button id='scoresContinue' onclick='doneWithScores()' class='pbr-yellow button col2-row2' style='height:35px;width:90px;display:none;'>Continue</button>
+				<button id='finalScreenContinue' onclick='doneWithGame()' class='pbr-yellow button col2-row2' style='height:35px;width:80px;display:none;'>Finish</button>
+			</div>
+
+			<div id='round6' class='questionsRoundGrid col2-row2 centerText' style='display: none;'>
+				<a id='answer11' class= 'pbr-text-blue col1-row2 autoMargin'></a>
+				<input id='question11' class='inputQuestions col1-row1 autoMargin'></input>
+				<a id='answer21' class= 'pbr-text-blue col1-row4 autoMargin'></a>
+				<input id='question21' class='inputQuestions col1-row3 autoMargin'></input>
+				<a id='answer31' class= 'pbr-text-blue col1-row6 autoMargin'></a>
+				<input id='question31' class='inputQuestions col1-row5 autoMargin'></input>
+				<a id='needAnswers1' class='pbr-text-red col1-row7 centerText' style='display:none;'>Please submit all the questions.</a>
+
+				<div class='rightSideGridContainer' style='grid-column:2;grid-row:1 / 8'>
+
+					<div class="base-timer">
+						<svg class="base-timer__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+							<g class="base-timer__circle">
+							  <circle class="base-timer__path-elapsed" cx="50" cy="50" r="45" />
+							  <path id="base-timer-path-remaining2" stroke-dasharray="283" class="base-timer__path-remaining" style='color:green;'
+						        d="
+						          M 50, 50
+						          m -45, 0
+						          a 45,45 0 1,0 90,0
+						          a 45,45 0 1,0 -90,0
+						        "
+						      ></path>
+							</g>
+						</svg>
+						<span>
+							<a id='countdownTimerRound6' class='col1-row1 base-timer__label'></a>
+						</span>
+					</div>
+					<button id='submitButton1' onclick="send_questions()" class='pbr-yellow button col1-row2' style='height:35px;width:80px'>Submit</button>
+				</div>
+
+			</div>
+
+			<div id='round7' class='questionsDisplayGrid col2-row2 centerText'style='display: none;'>
+
+				<div id='questionDisplayFlexBox' class='col1-row1'>
+					<a id='spotlightID' style='display:none;'></a>
+<!-- 					<a id='questionShortname' class='pbr-text-blue'></a> -->
+					<a id='realQuestion' class='pbr-text-blue'></a>
+					<a id='realAnswer' class='pbr-text-blue'></a>
+					<a id='fakeQuestion' class='pbr-text-blue'></a>
+				</div>
+
+				<div id='emojiButtonsDashboard' style='grid-column:2;grid-row:1;'>
+					<a class='col1-row1'></a>
+					<button id='votingButton1' class='emojiButton card' class='col1-row2' onclick="send_emoji(100)">🤣</button>
+					<button id='votingButton2' class='emojiButton card' class='col1-row3' onclick="send_emoji(50)">😎</button>
+					<button id='votingButton3' class='emojiButton card' class='col1-row4' onclick="send_emoji(25)">👍</button>
+
+					<button id='continueButtonQuestion' onclick='nextQuestion()' class='pbr-yellow button col1-row5' style='height:35px;width:90px;display: none;'>Continue</button>
+				</div>
+
+				
+			</div>
+
+			<div id='round8' class='col2-row2 centerText'style='display: none;'>
+				<div class='titleNameStoryBoxClass'>
+					<a id='winningStoryTitle' class='titleDisplay card'></a>
+					<a id='winningStoryShortname' class='authorDisplay card'></a>
+					<a id='winningStory' class='storyDisplay card'></a>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<div id='credits' class='footer'>
+		<a class='pbr-text-small'>Created by <span class='pbr-text-blue'>Kevin Lauer</span> and <span class='pbr-text-red'>Emily Lucas</span></a>
+	</div>
+
+</body>
+
+</html>
