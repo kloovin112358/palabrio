@@ -26,7 +26,7 @@
 
 @font-face {
    font-family: 'alba';
-   src: url('alba.ttf') format('truetype');
+   src: url('/client/alba.ttf') format('truetype');
 }
 
 .titleBig {
