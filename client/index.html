@@ -231,7 +231,7 @@
 				errorElement.innerHTML = 'Error: this username is already taken';
 				break;
 			default:
-				console.log(data.message);
+				break;
 		}
 	});
 
@@ -365,7 +365,6 @@
 		var playersScores = data.scores
 		var lastScore = 'first'
 		var counter = 1
-		console.log(playersScores)
 
 		for (let player in playersScores) {
 
@@ -588,7 +587,6 @@
 	function startTimer(amountOfTime, timePassed, timeLeft, callbackFunction, timerID, waitingBool, timer_path_remaining) {
 	  	timerInterval = setInterval(() => {
 	  		
-	  		console.log('still running!')
 		    // The amount of time passed increments by one
 		    timePassed = timePassed += 1;
 		    timeLeft = amountOfTime - timePassed;
@@ -685,11 +683,11 @@
 	</div>
 <!-- 	<input id='gameSettings' type='image' onclick='toggleSettingsInGame()' src='http://localhost:2000/client/settings_gear_small.png' style='position:absolute;right:0;margin-top:0;margin-right:10px;display:none;'> -->
 	<div id='headerBig' class='titleBig alba'>
-		<a href='http://localhost:2000/'class= 'pbr-text-large' style='text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
+		<a href='http://www.palabr.io'class= 'pbr-text-large' style='text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
 <!-- blankcomment -->
 	<div id='headerSmall' class='titleSmall alba' style='display: none;'>
-		<a href='http://localhost:2000/'class= '' style='text-align:left;text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
+		<a href='http://www.palabr.io'class= '' style='text-align:left;text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
 
 	<div id='startMenu' class='card menuStart'>
