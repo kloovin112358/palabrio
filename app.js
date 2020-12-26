@@ -133,7 +133,7 @@ io.sockets.on('connection', function(socket) {
 	socket.on('startGame', function(data) {
 		var game = (in_game(socket.id)).i
 		var gameId = (games[game])[0]
-		if ((games[game]).length < 5) {
+		if ((games[game]).length < 4) {
 			alertUser(socket.id,'error3');
 			//error3 denotes that there are fewer than the minimum players in the game
 		} else {
