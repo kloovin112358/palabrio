@@ -268,7 +268,7 @@ io.sockets.on('connection', function(socket) {
 			updateEntireAfterRound(socket.id, gameID, conditions_list);
 			addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)
 		} else {
-			showVotes(gameID, false)
+			showVotes(gameID, players_attributes, false)
 		}
 
 	});
@@ -303,7 +303,7 @@ io.sockets.on('connection', function(socket) {
 		var bigDone = sendQuestionsRound(players_attributes)
 
 		if (bigDone) {
-			showVotes(gameID, true)
+			showVotes(gameID, players_attributes, true)
 		}
 
 	});
@@ -834,8 +834,7 @@ function votingStories(game_code) {
 	};
 };
 
-function showVotes(game_code, lastRoundBoolean) {
-	var players_attributes = in_process_attributes[game_code];
+function showVotes(game_code, players_attributes, lastRoundBoolean) {
 	var host = find_host(game_code)
 	var scores = sortScores(players_attributes)
 
