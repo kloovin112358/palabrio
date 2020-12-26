@@ -141,10 +141,20 @@ io.sockets.on('connection', function(socket) {
 				var playerID = (games[game])[i];
 				changeHTML(playerID);
 			};
+
 			startGame(gameId, data.familyStatus, data.getToKnowYouStatus);
 		}
 
 	});
+
+	socket.on('readyPlayerOne', function() {
+		var gameID = online_players[socket.id]
+		var players_attributes = in_process_attributes[gameID]
+
+		for (let player in players_attributes) {
+			sendQuestions(player, players_attributes);
+		}
+	})
 
 	socket.on('receiveAnswers', function(data) {
 
@@ -157,12 +167,11 @@ io.sockets.on('connection', function(socket) {
 
 		var conditions_list = [5,6,7]
 
-		updateEntireAfterRound(socket.id, gameID, conditions_list);
-		//this updates the screen of the user that just submitted their answers
-
-		if (addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)) {
+		if (!isLastPlayer(players_attributes, conditions_list)) {
+			updateEntireAfterRound(socket.id, gameID, conditions_list);
+			addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)
+		} else {
 			delayBeforeStartRound(players_attributes, 'start_story_rd')
-			//some sort of delay here before starting, maybe an animation, some sound
 		}
 
 	});
@@ -181,10 +190,10 @@ io.sockets.on('connection', function(socket) {
 		
 		var conditions_list = [9,10]
 
-		updateEntireAfterRound(socket.id, gameID, conditions_list);
-		//this updates the screen of the user that just submitted their answers
-
-		if (addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)) {
+		if (!isLastPlayer(players_attributes, conditions_list)) {
+			updateEntireAfterRound(socket.id, gameID, conditions_list);
+			addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)
+		} else {
 			displayStories(gameID)
 		}
 
@@ -200,10 +209,10 @@ io.sockets.on('connection', function(socket) {
 
 		var conditions_list = [13,14,15]
 
-		updateEntireAfterRound(socket.id, gameID, conditions_list);
-		//this updates the screen of the user that just submitted their answers
-
-		if (addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)) {
+		if (!isLastPlayer(players_attributes, conditions_list)) {
+			updateEntireAfterRound(socket.id, gameID, conditions_list);
+			addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)
+		} else {
 			displayQuestions(gameID)
 		}
 
@@ -252,9 +261,10 @@ io.sockets.on('connection', function(socket) {
 
 		var conditions_list = [12]
 
-		updateEntireAfterRound(socket.id, gameID, conditions_list);
-
-		if (addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)) {
+		if (!isLastPlayer(players_attributes, conditions_list)) {
+			updateEntireAfterRound(socket.id, gameID, conditions_list);
+			addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)
+		} else {
 			showVotes(gameID, false)
 		}
 
@@ -628,8 +638,6 @@ function startGame(game_code, familyBool, getToKnowBool) {
 			};
 
 			in_process_attributes[game_code] = players_attributes
-
-			sendQuestions(player, players_attributes);
 		};
 	};
 
@@ -640,7 +648,10 @@ function startGame(game_code, familyBool, getToKnowBool) {
 			var shortName = players_attributes[x][0]
 			io.to(playerID).emit('addPlayers', {shortName})
 		};
+		io.to(playerID).emit('addStartDelay');
 	};
+
+
 
 	//click submit button or time runs out
 };
@@ -877,6 +888,18 @@ function areConditionsIn(player_id, players_attributes, conditions_list) {
 			return false;
 		}
 	}
+	return true;
+}
+
+function isLastPlayer(players_attributes, conditions_list) {
+
+	for (let key in players_attributes) {
+		var checker = areConditionsIn(key, players_attributes, conditions_list)
+		if (checker != true) {
+			return false;
+		}
+	}
+
 	return true;
 }
 

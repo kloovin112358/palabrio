@@ -33,8 +33,6 @@
    		url('/client/alba.ttf') format('truetype');
 }
 
-/* dogs */
-
 .titleBig {
 	overflow:hidden;
 	text-align:center;

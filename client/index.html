@@ -200,6 +200,14 @@
 		document.getElementById('gameSettings').style.display = 'inherit';
 	});
 
+	socket.on('addStartDelay', function() {
+		initializeTimer(10, readyPlayerOne, 'waitingText', true, "dummy")
+	})
+
+	var readyPlayerOne = function() {
+		socket.emit('readyPlayerOne');
+	}
+
 	socket.on('serverMsg', function(data) {
 
 		var errorElement = document.getElementById('errorMsg')
@@ -266,6 +274,8 @@
 	});
 
 	socket.on('addQuestions', function(data) {
+		document.getElementById('waitingScreen').style.display = 'none';
+		document.getElementById('round1').style.display = 'inherit';
 		document.getElementById('question1').innerHTML = data.question1
 		document.getElementById('question2').innerHTML = data.question2
 		document.getElementById('question3').innerHTML = data.question3
@@ -673,11 +683,11 @@
 		<a id='cannedAnswer3'></a>
 	</div>
 <!-- 	<input id='gameSettings' type='image' onclick='toggleSettingsInGame()' src='http://localhost:2000/client/settings_gear_small.png' style='position:absolute;right:0;margin-top:0;margin-right:10px;display:none;'> -->
-	<div id='headerBig' class='titleBig'>
+	<div id='headerBig' class='titleBig alba'>
 		<a href='http://localhost:2000/'class= 'pbr-text-large' style='text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
 <!-- blankcomment -->
-	<div id='headerSmall' class='titleSmall' style='display: none;'>
+	<div id='headerSmall' class='titleSmall alba' style='display: none;'>
 		<a href='http://localhost:2000/'class= '' style='text-align:left;text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
 
@@ -731,12 +741,12 @@
 
 			</div>
 
-			<div id='waitingScreen' class='waitingGrid col2-row2' style='display:none;'>
+			<div id='waitingScreen' class='waitingGrid col2-row2'>
 				<a id='waitingText' class='col1-row1 autoMargin card funFactMode'></a>
 				<div id='listPlayers' class='col1-row2 autoMargin'></div>
 			</div>
 
-			<div id='round1' class='questionsRoundGrid col2-row2 centerText'>
+			<div id='round1' class='questionsRoundGrid col2-row2 centerText'  style='display:none;'>
 				<a id='question1' class= 'pbr-text-blue col1-row1 autoMargin'></a>
 				<input id='answer1' class='inputGame col1-row2'></input>
 				<a id='question2' class= 'pbr-text-blue col1-row3 autoMargin'></a>
