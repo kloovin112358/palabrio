@@ -24,7 +24,7 @@
   }
 }*/
 
-/*@font-face {
+@font-face {
    font-family: 'alba';
    src: url('/client/alba.eot');
    src: url('/client/alba.eot?#iefix') format('embedded-opentype'),
@@ -32,7 +32,9 @@
    		url('/client/alba.svg#svgFontName') format('svg'),
    		url('/client/alba.ttf') format('truetype');
 }
-*/
+
+/* dogs */
+
 .titleBig {
 	overflow:hidden;
 	text-align:center;
