@@ -231,6 +231,18 @@
 	grid-template-columns:80% 20%;
 }
 
+.round8grid {
+	display:grid;
+	grid-template-rows:auto 14.2857%;
+	grid-template-columns:minmax(300px,80%) minmax(130px,20%);
+}
+
+.pushButtonToBottom {
+	display:grid;
+	grid-template-rows:85.7143% 14.2857%;
+	grid-template-columns:1;
+}
+
 .storyRoundGrid {
 	display:grid;
 	grid-template-rows:10% auto 10% 10%;

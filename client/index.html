@@ -565,7 +565,7 @@
 		document.getElementById('winningStory').innerHTML = data.winningStory;
 		document.getElementById('winningStoryTitle').innerHTML = data.winningStoryTitle;
 		document.getElementById('winningStoryShortname').innerHTML = "By: " + data.winningStoryShortname;
-		document.getElementById('round8').style.display = 'inherit';
+		document.getElementById('round8').style.display = 'grid';
 		document.getElementById('instructions').innerHTML = 'Here\'s what your winner wrote. Could be better...'
 	});
 
@@ -923,12 +923,15 @@
 				
 			</div>
 
-			<div id='round8' class='col2-row2 centerText'style='display: none;'>
-				<div class='titleNameStoryBoxClass'>
+			<div id='round8' class='col2-row2 centerText round8grid' style='display:none'>
+				<div class='titleNameStoryBoxClass' style='grid-column:1;grid-row:1 / 3'>
 					<a id='winningStoryTitle' class='titleDisplay card'></a>
 					<a id='winningStoryShortname' class='authorDisplay card'></a>
 					<a id='winningStory' class='storyDisplay card'></a>
 				</div>
+
+				<button class ='pbr-yellow button col2-row2' style='height:35px;width:114px;' onclick="window.location.href = 'http://palabr.io';">Return Home</button>
+
 			</div>
 
 		</div>
