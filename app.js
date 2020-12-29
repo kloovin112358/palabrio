@@ -858,35 +858,34 @@ function sortScores(players_attributes) {
 		sortedList.push(temp)
 	};
 
-	var max;
+	// var max;
 
-	for(var i = 0; i < sortedList.length; i++) {
+	// for(var i = 0; i < sortedList.length; i++) {
 
-	  max = sortedList[i][1];
+	// 	max = sortedList[i][1];
 
-	  for(var j = i + 1; j < sortedList.length; j++) {
+	// 	for(var j = i + 1; j < sortedList.length; j++) {
 
-	    if(sortedList[j][1] > max) {
-	      swap(i, j);
-	    }
+	// 		if(sortedList[j][1] > max) {
+	// 			swap(i, j);
+	// 		}
 
-	  }
+	// 	}
 
-	}
+	// }
 
-	function swap(i, j) {
-	  var temp = sortedList[i];
-	  sortedList[i] = sortedList[j];
-	  sortedList[j] = temp;
-	}
+	// function swap(i, j) {
+	// 	var temp = sortedList[i];
+	// 	sortedList[i] = sortedList[j];
+	// 	sortedList[j] = temp;
+	// }
 
-	console.log(sortedList);
+	sortedList.sort(function(a,b){return b[1] - a[1];});
+	console.log(sortedList)
 
 	for (var i = 0; i < sortedList.length; i++) {
 		indexes[(sortedList[i])[0]] = (sortedList[i])[1]
 	}
-
-	console.log(indexes)
 
 	return indexes;
 }
