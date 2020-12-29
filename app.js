@@ -246,13 +246,10 @@ io.sockets.on('connection', function(socket) {
 			if (!players_attributes[player][19]) {
 
 				if (players_attributes[player][0] == data.place1) {
-					console.log('Player ' + data.place1 + ' has been given 1000 points.')
 					players_attributes[player][1] += 1000
 				} else if (players_attributes[player][0] == data.place2) {
-					console.log('Player ' + data.place2 + ' has been given 500 points.')
 					players_attributes[player][1] += 500
 				} else if (players_attributes[player][0] == data.place3) {
-					console.log('Player ' + data.place3 + ' has been given 250 points.')
 					players_attributes[player][1] += 250
 				}
 			}
@@ -839,7 +836,6 @@ function showVotes(game_code, players_attributes, lastRoundBoolean) {
 	var scores = sortScores(players_attributes)
 
 	for (let player in players_attributes) {
-		console.log(scores)
 		io.to(player).emit('displayScores', {scores, lastRoundBoolean})
 	};
 
@@ -864,6 +860,8 @@ function sortScores(players_attributes) {
 		keys.push(shortName);
 	};
 
+	console.log(indexes)
+
 	for(var i = 0; i < len; i++) {
 
 	  var max = i;
@@ -881,6 +879,8 @@ function sortScores(players_attributes) {
 	  indexes[keys[i]] = temp;
 
 	}
+
+	console.log(indexes)
 
 	return indexes;
 }
