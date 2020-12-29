@@ -797,6 +797,7 @@ function displayStories(game_code) {
 };
 
 function sendStory(game_code, player_id) {
+	
 	var players_attributes = in_process_attributes[game_code];
 
 	var story = players_attributes[player_id][9]
@@ -814,6 +815,7 @@ function sendStory(game_code, player_id) {
 };
 
 function votingStories(game_code) {
+
 	var players_attributes = in_process_attributes[game_code];
 	var storiesList = []
 
@@ -832,6 +834,7 @@ function votingStories(game_code) {
 };
 
 function showVotes(game_code, players_attributes, lastRoundBoolean) {
+
 	var host = find_host(game_code)
 	var scores = sortScores(players_attributes)
 
@@ -848,6 +851,7 @@ function showVotes(game_code, players_attributes, lastRoundBoolean) {
 }
 
 function sortScores(players_attributes) {
+
 	var indexes = {};
 	var sortedList = [];
 
@@ -858,30 +862,7 @@ function sortScores(players_attributes) {
 		sortedList.push(temp)
 	};
 
-	// var max;
-
-	// for(var i = 0; i < sortedList.length; i++) {
-
-	// 	max = sortedList[i][1];
-
-	// 	for(var j = i + 1; j < sortedList.length; j++) {
-
-	// 		if(sortedList[j][1] > max) {
-	// 			swap(i, j);
-	// 		}
-
-	// 	}
-
-	// }
-
-	// function swap(i, j) {
-	// 	var temp = sortedList[i];
-	// 	sortedList[i] = sortedList[j];
-	// 	sortedList[j] = temp;
-	// }
-
 	sortedList.sort(function(a,b){return b[1] - a[1];});
-	console.log(sortedList)
 
 	for (var i = 0; i < sortedList.length; i++) {
 		indexes[(sortedList[i])[0]] = (sortedList[i])[1]

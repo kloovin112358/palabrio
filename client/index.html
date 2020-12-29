@@ -267,6 +267,9 @@
 		document.getElementById('joinCode').style.display = 'none';
 		document.getElementById('btnLobby').style.display = 'none';
 		document.getElementById('startGame').style.display = 'block';
+		document.getElementById('username').style.display = 'none';
+		document.getElementById("afterCreatedUsername").style.display = 'inherit';
+		document.getElementById("afterCreatedUsername").innerHTML = document.getElementById("shortnameID").innerHTML
 
 		document.getElementById('shareCode').style.display = 'block';
 		document.getElementById('shareCode').innerHTML = 'Game ID: ' + data.gameID;
