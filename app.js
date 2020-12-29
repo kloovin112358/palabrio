@@ -80,6 +80,9 @@ io.sockets.on('connection', function(socket) {
 		if (typeof findGame(data.gamecode) == "boolean") {
 			alertUser(socket.id,'error1');
 			//error1 denotes that the game doesn't exist
+		} else if (data.gamecode in in_process_attributes) {
+			alertUser(socket.id,'error6');
+			//error6 if the game has already started
 		} else {
 			if (in_game(socket.id) == false) {
 				if (num_players_in_game(data.gamecode) == 9) {
@@ -797,7 +800,7 @@ function displayStories(game_code) {
 };
 
 function sendStory(game_code, player_id) {
-	
+
 	var players_attributes = in_process_attributes[game_code];
 
 	var story = players_attributes[player_id][9]
