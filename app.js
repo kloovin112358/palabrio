@@ -99,7 +99,7 @@ io.sockets.on('connection', function(socket) {
 						//attribute list: short name, score, q1-q3, a1-a3, answerer, story, title, f1-f3
 						//make function to do this or this section will look gross
 						update_host(games[indexOfGame], data.gamecode);
-						socket.emit('joinedLobby', {indexOfGame});
+						socket.emit('joinedLobby');
 						//add code here to send a fun fact or something to display in place
 						//of the intro paragraph
 					} else {
@@ -133,7 +133,7 @@ io.sockets.on('connection', function(socket) {
 	socket.on('startGame', function(data) {
 		var game = (in_game(socket.id)).i
 		var gameId = (games[game])[0]
-		if ((games[game]).length < 4) {
+		if ((games[game]).length < 5) {
 			alertUser(socket.id,'error3');
 			//error3 denotes that there are fewer than the minimum players in the game
 		} else {

@@ -24,14 +24,14 @@
   }
 }*/
 
-@font-face {
+/*@font-face {
    font-family: 'alba';
    src: url('/client/alba.eot');
    src: url('/client/alba.eot?#iefix') format('embedded-opentype'),
    		url('/client/alba.woff') format('woff'),
    		url('/client/alba.svg#svgFontName') format('svg'),
    		url('/client/alba.ttf') format('truetype');
-}
+}*/
 
 .titleBig {
 	overflow:hidden;
@@ -71,7 +71,7 @@
 .menuStart {
 	width:500px;
 	margin:0 auto;
-	margin-top:2em;
+	margin-top:1.3em;
 	display:flex;
 	flex-wrap:wrap;
 }
@@ -613,7 +613,9 @@ html,body{
 	font-size:18px;
 	line-height:1.5;
 	height:100%;
-	overflow:hidden;
+	padding:0;
+	margin:0;
+/*	overflow:hidden;*/
 }
 
 li {
@@ -689,6 +691,11 @@ select {
   background-color: white;
   -webkit-transition: .4s;
   transition: .4s;
+}
+
+.headerFont {
+	font-family: "Varela round";
+	font-weight:700;
 }
 
 input:checked + .slider {

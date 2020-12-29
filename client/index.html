@@ -4,7 +4,9 @@
 <link rel='icon' href='/client/palabricon.png'>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href='/client/palabristyle.css'>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Varela+Round">
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script> 
 
 	var socket = io();
@@ -16,6 +18,9 @@
 		if (username != '') {
 			socket.emit('createLobby', {username});
 			document.getElementById('shortnameID').innerHTML = username
+			document.getElementById("username").style.display = 'none';
+			document.getElementById("afterCreatedUsername").style.display = 'inherit';
+			document.getElementById("afterCreatedUsername").innerHTML = username
 			document.getElementById("btnLobby").disabled = 'disabled';
 			document.getElementById('btnJoinExisting').style.display = 'none';
 			document.getElementById('joinCode').style.display = 'none';
@@ -201,7 +206,7 @@
 	});
 
 	socket.on('addStartDelay', function() {
-		initializeTimer(10, readyPlayerOne, 'waitingText', true, "dummy")
+		initializeTimer(1, readyPlayerOne, 'waitingText', true, "dummy")
 	})
 
 	var readyPlayerOne = function() {
@@ -241,12 +246,13 @@
 		document.getElementById('copyGameCode').style.display = 'block';
 	});
 
-	socket.on('joinedLobby', function(data) {
+	socket.on('joinedLobby', function() {
 		document.getElementById('welcomeText').style.display = 'none';
 		document.getElementById('startInputInfo').style.display = 'none';
 		document.getElementById('optionsInstructions').style.display = 'none';
 		document.getElementById('lobbyJoin').style.display = 'block';
-		document.getElementById('lobbyJoin').innerHTML = 'Joined lobby. Please wait for the host to start the game.'
+		var tempUsername = document.getElementById('shortnameID').innerHTML
+		document.getElementById('lobbyJoin').innerHTML = 'Welcome, ' + "<b>" + tempUsername + "</b>" + '! It\'s great to have you. Your host will begin the game soon.'
 	});
 
 	socket.on('transferHost', function(data) {
@@ -288,7 +294,7 @@
 			waitingList.removeChild(waitingList.firstChild);
 		}
 		var realFunctionCall = window[data.function_call_when_done];
-		initializeTimer(5, realFunctionCall, 'waitingText', true, "dummy")
+		initializeTimer(1, realFunctionCall, 'waitingText', true, "dummy")
 	});
 
 	function start_story_rd() {
@@ -500,6 +506,10 @@
 
 		};
 
+		document.getElementById("firstDropdown").selectedIndex = -1;
+		document.getElementById("secondDropdown").selectedIndex = -1;
+		document.getElementById("thirdDropdown").selectedIndex = -1;
+
 		document.getElementById('instructions').innerHTML = 'You\'ve got three votes—who was best, who was worst, and who was just okay?'
 		document.getElementById('round4').style.display = 'inherit';
 
@@ -510,14 +520,26 @@
 		var op2 = document.getElementById('secondDropdown');
 		var op3 = document.getElementById('thirdDropdown');
 
-		var place1 = op1.options[op1.selectedIndex].value;
-		var place2 = op2.options[op2.selectedIndex].value;
-		var place3 = op3.options[op3.selectedIndex].value;
+		var index1 = op1.selectedIndex
+		var index2 = op2.selectedIndex
+		var index3 = op3.selectedIndex
 
-		socket.emit('addVotes', {place1, place2, place3})
-		document.getElementById('round4').style.display = 'none';
-		document.getElementById('instructions').innerHTML = 'I bet you won.'
-		document.getElementById('waitingScreen').style.display = 'inherit';
+		if (index1 == -1 || index2 == -1 || index3 == -1) {
+			document.getElementById('errorVote').style.display = 'inherit';
+			document.getElementById('errorVote').innerHTML = 'Error: please use all your votes.'
+		} else if (index1 == index2 || index2 == index3 || index1 == index3) {
+			document.getElementById('errorVote').style.display = 'inherit';
+			document.getElementById('errorVote').innerHTML = 'Error: you may give each player at most one vote.'
+		} else {
+			var place1 = op1.options[op1.selectedIndex].value;
+			var place2 = op2.options[op2.selectedIndex].value;
+			var place3 = op3.options[op3.selectedIndex].value;
+
+			socket.emit('addVotes', {place1, place2, place3})
+			document.getElementById('round4').style.display = 'none';
+			document.getElementById('instructions').innerHTML = 'I bet you won.'
+			document.getElementById('waitingScreen').style.display = 'inherit';
+		}
 	};
 
 	socket.on('addContinueButton', function(data) {
@@ -682,11 +704,10 @@
 		<a id='cannedAnswer3'></a>
 	</div>
 <!-- 	<input id='gameSettings' type='image' onclick='toggleSettingsInGame()' src='http://localhost:2000/client/settings_gear_small.png' style='position:absolute;right:0;margin-top:0;margin-right:10px;display:none;'> -->
-	<div id='headerBig' class='titleBig alba'>
+	<div id='headerBig' class='titleBig headerFont'>
 		<a href='http://www.palabr.io'class= 'pbr-text-large' style='text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
-<!-- blankcomment -->
-	<div id='headerSmall' class='titleSmall alba' style='display: none;'>
+	<div id='headerSmall' class='titleSmall headerFont' style='display: none;'>
 		<a href='http://www.palabr.io'class= '' style='text-align:left;text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
 
@@ -695,6 +716,7 @@
 
 		<div id='startInputInfo' class='initialStartGrid'>
 			<input id = 'username' placeholder = 'Username' class='inputBox col1-row1' maxlength="12"></input>
+			<a id='afterCreatedUsername' style='display:none;' class='pbr-text-blue centerText'></a>
 			<button id = 'btnLobby' onclick="create_lobby()" class='pbr-yellow button col2-row1'>Create Game</button>
 			<button id = 'startGame' onclick="start_game()" class='pbr-yellow button col2-row1' style = "display: none;">Start Game</button>
 			<input id = 'joinCode' placeholder = 'Game ID' class='inputBox col1-row2'></input>
@@ -828,7 +850,7 @@
 					<select id='secondDropdown' class='col1-row5 votingDropdown autoMargin'></select>
 					<a id = 'thirdTitle' class='pbr-text-blue col1-row6 autoMargin'>3rd</a>
 					<select id='thirdDropdown' class='col1-row7 votingDropdown autoMargin'></select>
-					<a class='col1-row8'></a>
+					<a id='errorVote' class='col1-row8 pbr-text-red' style='font-size:12px;display:none;'></a>
 					<button id='submitStoryVotes' onclick='submitStoryVotes()' class='pbr-yellow button col1-row9' style='height:35px;width:80px;margin-left:40%'>Submit</button>
 				</div>
 			</div>
