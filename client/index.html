@@ -206,7 +206,7 @@
 	});
 
 	socket.on('addStartDelay', function() {
-		initializeTimer(1, readyPlayerOne, 'waitingText', true, "dummy")
+		initializeTimer(10, readyPlayerOne, 'waitingText', true, "dummy")
 	})
 
 	var readyPlayerOne = function() {
@@ -300,7 +300,7 @@
 			waitingList.removeChild(waitingList.firstChild);
 		}
 		var realFunctionCall = window[data.function_call_when_done];
-		initializeTimer(1, realFunctionCall, 'waitingText', true, "dummy")
+		initializeTimer(5, realFunctionCall, 'waitingText', true, "dummy")
 	});
 
 	function start_story_rd() {
