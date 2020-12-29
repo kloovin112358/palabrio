@@ -849,35 +849,41 @@ function showVotes(game_code, players_attributes, lastRoundBoolean) {
 
 function sortScores(players_attributes) {
 	var indexes = {};
-	var keys = [];
-
-	var len = Object.keys(players_attributes).length
+	var sortedList = [];
 
 	for (let player in players_attributes) {
 		var shortName = players_attributes[player][0]
 		var score = players_attributes[player][1]
-		indexes[shortName] = score;
-		keys.push(shortName);
+		var temp = [shortName, score];
+		sortedList.push(temp)
 	};
 
-	console.log(indexes)
+	var max;
 
-	for(var i = 0; i < len; i++) {
+	for(var i = 0; i < sortedList.length; i++) {
 
-	  var max = i;
+	  max = sortedList[i][1];
 
-	  for(var j = i+1; j<len; j++) {
+	  for(var j = i + 1; j < sortedList.length; j++) {
 
-	    if(indexes[keys[j]] > indexes[keys[max]] ) {
-	      max = j;
+	    if(sortedList[j][1] > max) {
+	      swap(i, j);
 	    }
 
 	  }
 
-	  var temp = indexes[keys[max]];
-	  indexes[keys[max]] = indexes[keys[i]];
-	  indexes[keys[i]] = temp;
+	}
 
+	function swap(i, j) {
+	  var temp = sortedList[i];
+	  sortedList[i] = sortedList[j];
+	  sortedList[j] = temp;
+	}
+
+	console.log(sortedList);
+
+	for (var i = 0; i < sortedList.length; i++) {
+		indexes[(sortedList[i])[0]] = (sortedList[i])[1]
 	}
 
 	console.log(indexes)
