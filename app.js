@@ -73,6 +73,17 @@ readCSV(1);
 readCSV(2);
 
 io.sockets.on('connection', function(socket) {
+	
+	// socket.emit('checkingCookie')
+
+	// socket.on('cookieExists', function(data) {
+
+	// });
+
+	// socket.on('noCookie', function() {
+
+	// })
+
 	online_players[socket.id] = 0;
 	getRandomCannedAnswer(socket.id)
 
@@ -357,11 +368,11 @@ io.sockets.on('connection', function(socket) {
 
 			if (gameID in in_process_attributes) {
 				is_game_started = 1;
-				//if they are in a game and it hasn't started
+				//if they are in a game and it has started
 
 			} else {
 				is_game_started = 2;
-				//if they are in a game and it has already started
+				//if they are in a game and it has not already started
 			}
 
 		}

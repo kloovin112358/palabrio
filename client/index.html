@@ -10,6 +10,46 @@
 <script> 
 
 	var socket = io();
+// 	socket.on('checkingCookie', function() {
+// 		var cook = checkCookie()
+// 		if (!cook) {
+// 			socket.emit('cookieExists', {cook})
+// 		} else {
+// 			socket.emit('noCookie')
+// 		}
+// 	})
+
+// 	function checkCookie() {
+// 		var userID = getCookie("userID");
+// 		if (userID != "") {
+// 			return userID
+// 		} else {
+// 			return false
+// 		}
+// 	}
+// //			setCookie("userID", username, 1);
+// 	function getCookie(cname) {
+// 		var name = cname + "=";
+// 		var ca = document.cookie.split(';');
+// 		for(var i = 0; i < ca.length; i++) {
+// 			var c = ca[i];
+// 			while (c.charAt(0) == ' ') {
+// 				c = c.substring(1);
+// 			}
+// 			if (c.indexOf(name) == 0) {
+// 				return c.substring(name.length, c.length);
+// 			}
+// 		}
+// 		return "";
+// 	}
+
+// 	function setCookie(cname, cvalue, exdays) {
+// 		var d = new Date();
+// 		d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+// 		var expires = "expires="+d.toUTCString();
+// 		document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+// 	}
+
 	var playerCounter = 0 
 
 	var create_lobby = function() {
@@ -99,8 +139,8 @@
 
 			socket.emit('receiveAnswers', {answer1, answer2, answer3});
 			document.getElementById('round1').style.display = 'none';
-			document.getElementById('waitingScreen').style.display = 'inherit';
 			document.getElementById('instructions').innerHTML = 'That wasn\'t too difficult, now was it?'
+			document.getElementById('waitingScreen').style.display = 'inherit';
 		};
 
 	};
@@ -133,8 +173,8 @@
 
 			socket.emit('submitQuestions', {question1, question2, question3});
 			document.getElementById('round6').style.display = 'none';
-			document.getElementById('waitingScreen').style.display = 'inherit';
 			document.getElementById('instructions').innerHTML = 'Good job, you\'re all done with the difficult stuff.'
+			document.getElementById('waitingScreen').style.display = 'inherit';
 		}
 	};
 
@@ -172,8 +212,8 @@
 
 			socket.emit('receiveStory', {story, story_title});
 			document.getElementById('round2').style.display = 'none';
-			document.getElementById('waitingScreen').style.display = 'inherit';
 			document.getElementById('instructions').innerHTML = 'Wow, you actually had to be creative. Who convinced you to play this, anyway?'
+			document.getElementById('waitingScreen').style.display = 'inherit';
 		}
 	};
 
@@ -200,9 +240,9 @@
 		document.getElementById('startMenu').style.display = 'none';
 		document.getElementById('headerBig').style.display = 'none';
 		document.getElementById('credits').style.display = 'none';
-		document.getElementById('gameMenu').style.display = 'block';
 		document.getElementById('headerSmall').style.display = 'inline';
 		document.getElementById('gameSettings').style.display = 'inherit';
+		document.getElementById('gameMenu').style.display = 'block';
 	});
 
 	socket.on('addStartDelay', function() {
@@ -253,9 +293,9 @@
 		document.getElementById('welcomeText').style.display = 'none';
 		document.getElementById('startInputInfo').style.display = 'none';
 		document.getElementById('optionsInstructions').style.display = 'none';
-		document.getElementById('lobbyJoin').style.display = 'block';
 		var tempUsername = document.getElementById('shortnameID').innerHTML
 		document.getElementById('lobbyJoin').innerHTML = 'Welcome, ' + "<b>" + tempUsername + "</b>" + '! It\'s great to have you. Your host will begin the game soon.'
+		document.getElementById('lobbyJoin').style.display = 'block';
 	});
 
 	socket.on('transferHost', function(data) {
@@ -281,17 +321,17 @@
 	})
 
 	socket.on('playerUpdate', function(data) {
-		document.getElementById('playersList').style.display = 'block';
 		document.getElementById('playersList').innerHTML = 'Players in lobby: ' + data.others_list;
+		document.getElementById('playersList').style.display = 'block';
 	});
 
 	socket.on('addQuestions', function(data) {
 		document.getElementById('waitingScreen').style.display = 'none';
-		document.getElementById('round1').style.display = 'inherit';
 		document.getElementById('question1').innerHTML = data.question1
 		document.getElementById('question2').innerHTML = data.question2
 		document.getElementById('question3').innerHTML = data.question3
 		initializeTimer(60, send_ans, "countdownTimerRound1", false, "base-timer-path-remaining");
+		document.getElementById('round1').style.display = 'inherit';
 	});
 
 	socket.on('startRoundDelay', function(data) {
@@ -338,10 +378,10 @@
 		}
 
 		document.getElementById('waitingScreen').style.display = 'none';
-		document.getElementById('round2').style.display = 'inherit';
 		document.getElementById('useAnswers').innerHTML = data.dispAnswer1 + ", " + data.dispAnswer2 + ", " + data.dispAnswer3
 		document.getElementById('instructions').innerHTML = 'Here is the tricky part. Incorporate these answers from your friends to write a story. Good luck!'
 		initializeTimer(180, send_story, "countdownTimerRound2", false, "base-timer-path-remaining1");
+		document.getElementById('round2').style.display = 'inherit';
 	});
 
 	socket.on('displayStory', function(data) {
@@ -352,10 +392,10 @@
 
 		document.getElementById('instructions').innerHTML = 'Let\'s see how bad your friends\' stories are.'
 		document.getElementById('waitingScreen').style.display = 'none';
-		document.getElementById('round3').style.display = 'inherit';
 		document.getElementById('titleStory').innerHTML = data.story_title
 		document.getElementById('storyAuthor').innerHTML = 'By: ' + data.shortName
 		document.getElementById('storyDisplay').innerHTML = data.story
+		document.getElementById('round3').style.display = 'inherit';
 	});
 
 	socket.on('displayScores', function(data) {
@@ -442,8 +482,8 @@
 		document.getElementById('answer31').innerHTML = data.ans3
 
 		document.getElementById('instructions').innerHTML = 'Here we go. Now you\'re going to write questions that would make these answers sound ridiculous.'
+		initializeTimer(90, send_questions, "countdownTimerRound6", false, "base-timer-path-remaining2");
 		document.getElementById('round6').style.display = 'inherit';
-		initializeTimer(60, send_questions, "countdownTimerRound6", false, "base-timer-path-remaining2");
 	});
 
 	socket.on('displayQuestions', function(data) {
@@ -565,8 +605,8 @@
 		document.getElementById('winningStory').innerHTML = data.winningStory;
 		document.getElementById('winningStoryTitle').innerHTML = data.winningStoryTitle;
 		document.getElementById('winningStoryShortname').innerHTML = "By: " + data.winningStoryShortname;
+		document.getElementById('instructions').innerHTML = 'Here\'s what your winner wrote. Pretty good, right?'
 		document.getElementById('round8').style.display = 'grid';
-		document.getElementById('instructions').innerHTML = 'Here\'s what your winner wrote. Could be better...'
 	});
 
 	function send_emoji(score) {
@@ -700,7 +740,7 @@
 
 </script>
 
-<body>
+<body onload="checkCookie()">
 	<div id='forDevEyesOnly' style='display:none;'>
 		<a id='timeOut'>false</a>
 		<a id='dummy'></a>
@@ -775,11 +815,11 @@
 
 			<div id='round1' class='questionsRoundGrid col2-row2 centerText'  style='display:none;'>
 				<a id='question1' class= 'pbr-text-blue col1-row1 autoMargin'></a>
-				<input id='answer1' class='inputGame col1-row2'></input>
+				<input id='answer1' class='inputGame col1-row2' maxlength="35"></input>
 				<a id='question2' class= 'pbr-text-blue col1-row3 autoMargin'></a>
-				<input id='answer2' class='inputGame col1-row4'></input>
+				<input id='answer2' class='inputGame col1-row4' maxlength="35"></input>
 				<a id='question3' class= 'pbr-text-blue col1-row5 autoMargin'></a>
-				<input id='answer3' class='inputGame col1-row6'></input>
+				<input id='answer3' class='inputGame col1-row6' maxlength="35"></input>
 				<a id='needAnswers' class='pbr-text-red col1-row7' style='display:none;'>Please answer all the questions.</a>
 				<div class='rightSideGridContainer' style='grid-column:2;grid-row:1 / 8'>
 
@@ -807,8 +847,8 @@
 
 			<div id='round2' class='storyRoundGrid col2-row2 centerText' style='display: none;'>
 				<a id='useAnswers' class='pbr-text-blue col1-row1 autoMargin'></a>
-				<textarea id='story' class='inputStory col1-row2'></textarea>
-				<input id='storyTitle' placeholder='story title' class='inputGame col1-row3'style='font-size:15px;width:50%;margin-left:25%;'></input>
+				<textarea id='story' class='inputStory col1-row2' maxlength="1100"></textarea>
+				<input id='storyTitle' placeholder='story title' class='inputGame col1-row3'style='font-size:15px;width:50%;margin-left:25%;' maxlength='60'></input>
 				<a id='needInfo' class='pbr-text-red col1-row4' style='display:none;'></a>
 
 				<div class='rightSideGridContainer' style='grid-column:2;grid-row:1 / 5'>
@@ -869,11 +909,11 @@
 
 			<div id='round6' class='questionsRoundGrid col2-row2 centerText' style='display: none;'>
 				<a id='answer11' class= 'pbr-text-blue col1-row2 autoMargin'></a>
-				<input id='question11' class='inputQuestions col1-row1 autoMargin'></input>
+				<input id='question11' class='inputQuestions col1-row1 autoMargin' maxlength='120'></input>
 				<a id='answer21' class= 'pbr-text-blue col1-row4 autoMargin'></a>
-				<input id='question21' class='inputQuestions col1-row3 autoMargin'></input>
+				<input id='question21' class='inputQuestions col1-row3 autoMargin' maxlength='120'></input>
 				<a id='answer31' class= 'pbr-text-blue col1-row6 autoMargin'></a>
-				<input id='question31' class='inputQuestions col1-row5 autoMargin'></input>
+				<input id='question31' class='inputQuestions col1-row5 autoMargin' maxlength='120'></input>
 				<a id='needAnswers1' class='pbr-text-red col1-row7 centerText' style='display:none;'>Please submit all the questions.</a>
 
 				<div class='rightSideGridContainer' style='grid-column:2;grid-row:1 / 8'>
