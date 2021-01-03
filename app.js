@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+// var cookieParser = require('cookie-parser'); 
 var serv = require('http').Server(app);
 
 app.get('/',function(req,res) {
@@ -11,10 +12,13 @@ app.use('/client',express.static(__dirname + '/client'));
 serv.listen(process.env.PORT || 2000);
 console.log("Server started.");
 
+// app.use(cookieParser()); 
+
 var io = require('socket.io')(serv, {});
 
 var online_players = {};
 var games = [];
+var game_parameters = {};
 
 var fam_friend_get_to_know_list = [];
 var fam_friend_list = [];
@@ -105,11 +109,7 @@ io.sockets.on('connection', function(socket) {
 
 					if (isShortNameUnique(shortname, games[indexOfGame])) {
 						//games[temp].splice(1, 0, socket.id);
-						games[indexOfGame].push(socket.id);
-						//add shortname to player attributes
-						var shortname = data.username;
-						var user_attributes = initialize_user_attributes(shortname);
-						all_player_attributes[socket.id] = user_attributes;
+						add_player_to_game(indexOfGame, socket.id, shortname)
 						//attribute list: short name, score, q1-q3, a1-a3, answerer, story, title, f1-f3
 						//make function to do this or this section will look gross
 						update_host(games[indexOfGame], data.gamecode);
@@ -133,10 +133,7 @@ io.sockets.on('connection', function(socket) {
 		if (in_game(socket.id) == false) {
 			//add shortname here
 			var gameId = makeid(10);
-			games.push([gameId, socket.id]);
-			var shortname = data.username;
-			var user_attributes = initialize_user_attributes(shortname);
-			all_player_attributes[socket.id] = user_attributes;
+			initializeGame(gameId, socket.id, data.username)
 			socket.emit('showID', {gameId});
 		} else {
 			alertUser(socket.id,'error2');
@@ -156,7 +153,9 @@ io.sockets.on('connection', function(socket) {
 				changeHTML(playerID);
 			};
 
-			startGame(gameId, data.familyStatus, data.getToKnowYouStatus);
+			game_parameters[gameId] = [data.familyStatus, data.getToKnowYouStatus]
+
+			startGame(gameId, data.familyStatus, data.getToKnowYouStatus, false);
 		}
 
 	});
@@ -288,6 +287,10 @@ io.sockets.on('connection', function(socket) {
 		var gameID = online_players[socket.id];
 		var players_attributes = in_process_attributes[gameID];
 
+		for (let player in players_attributes) {
+			io.to(player).emit('showWaitingScreen')
+		};
+
 		delayBeforeStartRound(players_attributes, 'start_making_questions')
 
 	});
@@ -352,7 +355,63 @@ io.sockets.on('connection', function(socket) {
 			io.to(player).emit('finishGame', {winningStory, winningStoryTitle, winningStoryShortname})
 		};
 
+		var host = find_host(gameID)
+		io.to(host).emit('addPlayAgainButton')
+
 	});
+
+	socket.on('playGameAgain', function() {
+		var gameID = online_players[socket.id];
+		var players_attributes = in_process_attributes[gameID];
+
+		for (let player in players_attributes) {
+
+			if (players_attributes[player][19] || !(player in online_players)) {
+				delete players_attributes[player]
+			} else {
+				getRandomCannedAnswer(player)
+				players_attributes[player] = initialize_user_attributes(players_attributes[player][0])	
+			}
+
+		};
+
+		if (Object.keys(players_attributes).length < 4) {
+			io.to(find_host(gameID)).emit('notEnoughPlayers')
+		} else {
+			var familyStatus = game_parameters[gameID][0]
+			var getToKnowYou = game_parameters[gameID][1]
+			
+			for (let player in players_attributes) {
+				io.to(player).emit('restartGame')
+			}
+
+			startGame(gameID, familyStatus, getToKnowYou, true)
+		}
+
+	});
+
+	socket.on('returnGameToLobby', function() {
+
+		var gameID = online_players[socket.id];
+		var players_attributes_old = in_process_attributes[gameID];
+		var players_attributes = {};
+		Object.assign(players_attributes, players_attributes_old);
+		var host = find_host(gameID)
+		destroy_game(gameID)
+
+		initializeGame(gameID, host, players_attributes[host][0])
+		var indexOfGame = findGame(gameID);
+
+		for (let player in players_attributes) {
+			if (player != host) {
+				add_player_to_game(indexOfGame, player, players_attributes[player][0])
+				io.to(player).emit('backToLobbyNewGame')
+			} else {
+				io.to(player).emit('backToLobbyNewGameHost')
+			}
+		}
+
+	})
 
 	socket.on('disconnect', function() {
 
@@ -387,8 +446,8 @@ io.sockets.on('connection', function(socket) {
 				//covers cases where they are the last one to leave in a game that is over or not
 				destroy_game(gameID);
 				delete in_process_attributes[gameID];
-			} else if (players_attributes[socket.id][20] == false) {
-				//if the game is not over
+			} else {
+				//if they are not the last one in the game
 
 				if (games[master_indexes.i][1] == socket.id) {
 					//if they are the host
@@ -436,6 +495,22 @@ io.sockets.on('connection', function(socket) {
 
 });
 //done with all socket message receiving
+
+function add_player_to_game(gameIndex, playerID, shortname) {
+	games[gameIndex].push(playerID);
+	add_player_to_player_attributes(playerID, shortname)
+}
+
+function initializeGame(gameID, playerID, shortname) {
+	games.push([gameID, playerID]);
+	add_player_to_player_attributes(playerID, shortname)
+	
+}
+
+function add_player_to_player_attributes(playerID, shortname) {
+	var user_attributes = initialize_user_attributes(shortname);
+	all_player_attributes[playerID] = user_attributes;
+}
 
 function autofillGhost(players_attributes, playerID) {
 
@@ -619,7 +694,7 @@ function getShortName(playerId) {
 	return (all_player_attributes[playerId])[0]
 };
 
-function startGame(game_code, familyBool, getToKnowBool) {
+function startGame(game_code, familyBool, getToKnowBool, replayBool) {
 
 	var questions_list_copy = [];
 
@@ -633,28 +708,42 @@ function startGame(game_code, familyBool, getToKnowBool) {
 		questions_list_copy = no_qualifiers_list.slice();
 	}
 
-	var players_attributes = {};
-	var gameIndex = findGame(game_code);
+	if (!replayBool) {
+		var players_attributes = {};
+		var gameIndex = findGame(game_code);
 
-	for (var i = 0; i < games[gameIndex].length; i++) {
-		if (i != 0) {
-			var player = (games[gameIndex])[i]
-			players_attributes[player] = all_player_attributes[player];
-			delete all_player_attributes[player];
-			online_players[player] = game_code
-			//got user_attributes from global all_player_attributes and added it to game specific players_attributes
-			//deleted the user_attributes from the global one
+		for (var i = 0; i < games[gameIndex].length; i++) {
+			if (i != 0) {
+				var player = (games[gameIndex])[i]
+				players_attributes[player] = all_player_attributes[player];
+				delete all_player_attributes[player];
+				online_players[player] = game_code
+				//got user_attributes from global all_player_attributes and added it to game specific players_attributes
+				//deleted the user_attributes from the global one
+				for (var p = 0; p < 3; p++) {
+					var questionlen = questions_list_copy.length;
+					var questionindex = getRandomInt(questionlen - 1);
+					(players_attributes[player])[p+2] = (questions_list_copy[questionindex]);
+					questions_list_copy.splice(questionindex, 1);
+				};
+
+				in_process_attributes[game_code] = players_attributes
+			};
+		};
+	} else {
+
+		var players_attributes = in_process_attributes[game_code];
+
+		for (let player in players_attributes) {
 			for (var p = 0; p < 3; p++) {
 				var questionlen = questions_list_copy.length;
 				var questionindex = getRandomInt(questionlen - 1);
 				(players_attributes[player])[p+2] = (questions_list_copy[questionindex]);
 				questions_list_copy.splice(questionindex, 1);
 			};
-
-			in_process_attributes[game_code] = players_attributes
-		};
-	};
-
+		}
+	}
+	
 	//this sends out the list of players in the game to the client
 	for (let key in players_attributes) {
 		var playerID = key
@@ -664,8 +753,6 @@ function startGame(game_code, familyBool, getToKnowBool) {
 		};
 		io.to(playerID).emit('addStartDelay');
 	};
-
-
 
 	//click submit button or time runs out
 };
@@ -1027,6 +1114,7 @@ function destroy_game(game_code) {
 	var position = findGame(game_code);
 	games.splice(position, 1)
 	delete in_process_attributes[game_code]
+	delete game_parameters[game_code]
 };
 
 function initialize_user_attributes(short_name) {

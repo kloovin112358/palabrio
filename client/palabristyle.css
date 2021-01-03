@@ -282,6 +282,15 @@
 	width:60%;
 }
 
+.emojiButton[disabled] {
+	background:#ccc;
+	pointer-events: none;
+}
+
+.emojiButton[disabled]:hover {
+	background:#ccc;
+}
+
 .emojiButton {
 	background-color:#be1e2d;
 	height:78%;
