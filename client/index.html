@@ -423,6 +423,9 @@
 		newElement.setAttribute('id',htmlID);
 		newElement.setAttribute('style','grid-column: 1;grid-row:' + playerCounter);
 		newElement.setAttribute('class','playerItem');
+		if (shortname.includes('(ghost)')) {
+			newElement.style.fontStyle = 'italic'
+		}
 		document.getElementById('playersListContainer').appendChild(newElement);
 	}
 
@@ -581,6 +584,7 @@
 	});
 
 	socket.on('displayStoryVoting', function(data) {
+		document.getElementById('waitingScreen').style.display = 'none';
 		document.getElementById('round3').style.display = 'none';
 
 		for (var i = 0; i < data.storiesList.length; i++) {

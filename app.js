@@ -89,7 +89,7 @@ io.sockets.on('connection', function(socket) {
 				var flag = false;
 				var players_attributes = in_process_attributes[data.gamecode]
 				for (let player in players_attributes) {
-					if (players_attributes[player][0] == "the ghost of " + data.username) {
+					if (players_attributes[player][0] == data.username + " (ghost)" ) {
 						reanimate(data.gamecode, data.username, socket.id);
 						flag = true;
 						break;
@@ -531,7 +531,7 @@ function reanimate(gameID, shortname, socketID) {
 	online_players[socketID] = gameID;
 
 	for (let playerID in players_attributes) {
-		if (players_attributes[playerID][0] == "the ghost of " + shortname) {
+		if (players_attributes[playerID][0] == shortname + " (ghost)") {
 			var oldSocket = playerID
 			players_attributes[socketID] = players_attributes[playerID];
 			delete players_attributes[playerID];
@@ -658,7 +658,7 @@ function add_player_to_player_attributes(playerID, shortname) {
 
 function autofillGhost(players_attributes, playerID, gameID) {
 
-	players_attributes[playerID][0] = "the ghost of " + players_attributes[playerID][0]
+	players_attributes[playerID][0] = players_attributes[playerID][0] + " (ghost)"
 	players_attributes[playerID][11] = true
 	players_attributes[playerID][12] = true
 	players_attributes[playerID][19] = true;
