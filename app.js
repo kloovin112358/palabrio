@@ -77,7 +77,7 @@ readCSV(1);
 readCSV(2); 
 
 io.sockets.on('connection', function(socket) {
-	
+
 	socket.emit('checkCookie')
 	getRandomCannedAnswer(socket.id)
 
@@ -87,7 +87,21 @@ io.sockets.on('connection', function(socket) {
 		console.log(socket.id)
 		if (data.gamecode != "") {
 			if (data.gamecode in in_process_attributes && in_process_attributes[data.gamecode][Object.keys(in_process_attributes[data.gamecode])[0]][20] == false) {
-				reanimate(data.gamecode, data.username, socket.id);
+				
+				var flag = false;
+				var players_attributes = in_process_attributes[data.gamecode]
+				for (let player in players_attributes) {
+					if (players_attributes[player][0] == "the ghost of " + data.username) {
+						reanimate(data.gamecode, data.username, socket.id);
+						flag = true;
+						break;
+					}
+				}
+
+				if (!flag) {
+					online_players[socket.id] = 0;
+				}
+				
 			} else {
 				online_players[socket.id] = 0;
 			}
