@@ -489,7 +489,7 @@ io.sockets.on('connection', function(socket) {
 
 				games[master_indexes.i].push(socket.id)
 				games[master_indexes.i].splice(master_indexes.p, 1);
-				
+
 				autofillGhost(players_attributes, socket.id, gameID)
 
 			}
@@ -527,10 +527,24 @@ io.sockets.on('connection', function(socket) {
 //done with all socket message receiving
 
 function reanimate(gameID, shortname, socketID) {
-	online_players[socketID] = gameID;
-	games[findGame(gameID)].push(socketID);
 
 	var players_attributes = in_process_attributes[gameID];
+	online_players[socketID] = gameID;
+
+	var gamePeople = games[findGame(gameID)]
+	for (var i = 0; i < gamePeople.length; i++) {
+		if (players_attributes[gamePeople[i]][19]) {
+			//once we have found a ghost in the list
+			gamePeople.splice(i, socketID)
+			break;
+		}
+	}
+	console.log(gamePeople)
+	console.log(games[findGame(gameID)])
+	//move the player in the list in front of the ghosts
+	// games[findGame(gameID)].push(socketID);
+
+	
 	for (let playerID in players_attributes) {
 		if (players_attributes[playerID][0] == "the ghost of " + shortname) {
 			var oldSocket = playerID
