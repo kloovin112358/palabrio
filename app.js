@@ -82,12 +82,10 @@ io.sockets.on('connection', function(socket) {
 	getRandomCannedAnswer(socket.id)
 
 	socket.on('checkedCookie', function(data) {
-		console.log(data.gamecode)
-		console.log(data.username)
-		console.log(socket.id)
+
 		if (data.gamecode != "") {
 			if (data.gamecode in in_process_attributes && in_process_attributes[data.gamecode][Object.keys(in_process_attributes[data.gamecode])[0]][20] == false) {
-				
+
 				var flag = false;
 				var players_attributes = in_process_attributes[data.gamecode]
 				for (let player in players_attributes) {
@@ -476,17 +474,22 @@ io.sockets.on('connection', function(socket) {
 				delete in_process_attributes[gameID];
 			} else {
 				//if they are not the last one in the game
-
-				if (games[master_indexes.i][1] == socket.id) {
+				console.log(find_host(gameID))
+				if (find_host(gameID) == socket.id) {
 					//if they are the host
-
-					newHost(games[master_indexes.i][2], gameID)
+					for (let player in players_attributes) {
+						if (player != socket.id && !players_attributes[player][19]) {
+							var new_host = player
+						}
+					}
+					newHost(new_host, gameID)
 					//transfer host
 				} 
 				updateGhostPlayersList(players_attributes, players_attributes[socket.id][0])
 
 				games[master_indexes.i].push(socket.id)
 				games[master_indexes.i].splice(master_indexes.p, 1);
+				
 				autofillGhost(players_attributes, socket.id, gameID)
 
 			}
@@ -673,45 +676,6 @@ function newHost(new_host, gameID) {
 	} else if (posInGame == 9) {
 		io.to(new_host).emit('addContinueQuestionButton')
 	}
-
-	// var flag = false;
-	// for (let player in players_attributes) {
-	// 	if (players_attributes[player][9] == '' || players_attributes[player][10] == '') {
-	// 		flag = true;
-	// 		break;
-	// 	}
-	// }
-	// //if the story round is not done yet
-
-	// if (!flag) {
-	// 	for (let player in players_attributes) {
-	// 		if (!players_attributes[player][11]) {
-	// 			flag = true;
-	// 			io.to(new_host).emit('addContinueButton')
-	// 			return;
-	// 		}
-	// 	}
-	// }
-	// //host left, someone needs next story button
-
-	// flag = false;
-
-	// for (let player in players_attributes) {
-	// 	if (players_attributes[player][13] == '' || players_attributes[player][14] == '' || players_attributes[player][15] == '') {
-	// 		flag = true;
-	// 		return;
-	// 	}
-	// }
-
-	// if (!flag) {
-	// 	for (let player in players_attributes) {
-	// 		if (!players_attributes[player][16] || !players_attributes[player][17] || !players_attributes[player][18]) {
-	// 			io.to(new_host).emit('addContinueQuestionButton')
-	// 			return;
-	// 		}
-	// 	}
-	// }
-	// //host left, someone needs the next fake question button
 
 }
 
