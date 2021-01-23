@@ -77,11 +77,14 @@ readCSV(1);
 readCSV(2); 
 
 io.sockets.on('connection', function(socket) {
-
+	
 	socket.emit('checkCookie')
 	getRandomCannedAnswer(socket.id)
 
 	socket.on('checkedCookie', function(data) {
+		console.log(data.gamecode)
+		console.log(data.username)
+		console.log(socket.id)
 		if (data.gamecode != "") {
 			if (data.gamecode in in_process_attributes && in_process_attributes[data.gamecode][Object.keys(in_process_attributes[data.gamecode])[0]][20] == false) {
 				reanimate(data.gamecode, data.username, socket.id);
@@ -507,17 +510,12 @@ io.sockets.on('connection', function(socket) {
 //done with all socket message receiving
 
 function reanimate(gameID, shortname, socketID) {
-	console.log('')
-	console.log(shortname)
-	console.log(socketID)
 	online_players[socketID] = gameID;
 	games[findGame(gameID)].push(socketID);
 
 	var players_attributes = in_process_attributes[gameID];
-	console.log(players_attributes)
 	for (let playerID in players_attributes) {
 		if (players_attributes[playerID][0] == "the ghost of " + shortname) {
-			console.log('called at player ' + shortname)
 			var oldSocket = playerID
 			players_attributes[socketID] = players_attributes[playerID];
 			delete players_attributes[playerID];
