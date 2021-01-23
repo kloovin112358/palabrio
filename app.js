@@ -849,10 +849,11 @@ function startGame(game_code, familyBool, getToKnowBool, replayBool) {
 	//this sends out the list of players in the game to the client
 	for (let key in players_attributes) {
 		var playerID = key
+		var shortGuy = players_attributes[playerID][0]
+		io.to(playerID).emit('addCookies', {shortGuy, game_code})
 		for (let x in players_attributes) {
 			var shortName = players_attributes[x][0]
 			io.to(playerID).emit('addPlayers', {shortName})
-			io.to(playerID).emit('addCookies', {shortName, game_code})
 		};
 		io.to(playerID).emit('addStartDelay');
 	};
