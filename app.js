@@ -706,8 +706,12 @@ function newHost(new_host, gameID) {
 
 	if (posInGame == 4) {
 		io.to(new_host).emit('addContinueButton')
+	} else if (posInGame == 6) {
+		io.to(new_host).emit('addScoringContinue')
 	} else if (posInGame == 9) {
 		io.to(new_host).emit('addContinueQuestionButton')
+	} else if (posInGame == 10) {
+		io.to(new_host).emit('addFinalScreenContinue')
 	}
 
 }
