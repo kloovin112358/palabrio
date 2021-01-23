@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-// var cookieParser = require('cookie-parser'); 
+var cookieParser = require('cookie-parser'); 
 var serv = require('http').Server(app);
 
 app.get('/',function(req,res) {
@@ -12,7 +12,7 @@ app.use('/client',express.static(__dirname + '/client'));
 serv.listen(process.env.PORT || 2000);
 console.log("Server started.");
 
-// app.use(cookieParser()); 
+app.use(cookieParser()); 
 
 var io = require('socket.io')(serv, {});
 
@@ -74,22 +74,24 @@ function initialize_server(lines, outputIndex) {
 
 readCSV(0);
 readCSV(1);
-readCSV(2);
+readCSV(2); 
 
 io.sockets.on('connection', function(socket) {
-	
-	// socket.emit('checkingCookie')
 
-	// socket.on('cookieExists', function(data) {
-
-	// });
-
-	// socket.on('noCookie', function() {
-
-	// })
-
-	online_players[socket.id] = 0;
+	socket.emit('checkCookie')
 	getRandomCannedAnswer(socket.id)
+
+	socket.on('checkedCookie', function(data) {
+		if (data.gamecode != "") {
+			if (data.gamecode in in_process_attributes && in_process_attributes[data.gamecode][Object.keys(in_process_attributes[data.gamecode])[0]][20] == false) {
+				reanimate(data.gamecode, data.username, socket.id);
+			} else {
+				online_players[socket.id] = 0;
+			}
+		} else {
+			online_players[socket.id] = 0;
+		}
+	});
 
 	socket.on('joinGame', function(data) {
 		if (typeof findGame(data.gamecode) == "boolean") {
@@ -130,6 +132,7 @@ io.sockets.on('connection', function(socket) {
 	});
 
 	socket.on('createLobby', function(data) {
+
 		if (in_game(socket.id) == false) {
 			//add shortname here
 			var gameId = makeid(10);
@@ -165,6 +168,7 @@ io.sockets.on('connection', function(socket) {
 		var players_attributes = in_process_attributes[gameID]
 
 		for (let player in players_attributes) {
+			players_attributes[player][21] = 1;
 			sendQuestions(player, players_attributes);
 		}
 	})
@@ -207,7 +211,7 @@ io.sockets.on('connection', function(socket) {
 			updateEntireAfterRound(socket.id, gameID, conditions_list);
 			addOnePlayerToWaitingScreen(socket.id, players_attributes, conditions_list)
 		} else {
-			displayStories(gameID)
+			randomizeOrder(players_attributes, 'stories', gameID)
 		}
 
 	});
@@ -235,17 +239,8 @@ io.sockets.on('connection', function(socket) {
 
 		var gameID = online_players[socket.id];
 		var players_attributes = in_process_attributes[gameID];
-		var done = true;
 
-		for (let player in players_attributes) {
-			if (!players_attributes[player][11]) {
-				sendStory(gameID, player);
-				done = false;
-				break;
-			}
-		}
-
-		if (done) {
+		if (randomizeOrder(players_attributes, 'stories', gameID)) {
 			votingStories(gameID)
 		}
 
@@ -300,7 +295,7 @@ io.sockets.on('connection', function(socket) {
 		var players_attributes = in_process_attributes[gameID];
 
 		for (let player in players_attributes) {
-
+			players_attributes[player][21] = 8
 			var answerer = players_attributes[player][8]
 
 			ans1 = players_attributes[answerer][5]
@@ -402,12 +397,28 @@ io.sockets.on('connection', function(socket) {
 		initializeGame(gameID, host, players_attributes[host][0])
 		var indexOfGame = findGame(gameID);
 
+		shortnamesList = '';
+		var front = ' '
+
+		for (var i = 0; i < Object.keys(players_attributes).length; i++) {
+			if (players_attributes[Object.keys(players_attributes)[i]][19] == false) {
+
+				shortnamesList += front + ((players_attributes[Object.keys(players_attributes)[i]][0]))
+				if (Object.keys(players_attributes)[i] == socket.id) {
+					shortnamesList += ' (you)'
+				}
+				
+				front = ', '
+			}
+		}
+		//#TODO get string concat set up to send over shortnamesList
+
 		for (let player in players_attributes) {
-			if (player != host) {
+			if (player != host && !players_attributes[player][19]) {
 				add_player_to_game(indexOfGame, player, players_attributes[player][0])
 				io.to(player).emit('backToLobbyNewGame')
-			} else {
-				io.to(player).emit('backToLobbyNewGameHost')
+			} else if (!players_attributes[player][19]) {
+				io.to(player).emit('backToLobbyNewGameHost', {shortnamesList})
 			}
 		}
 
@@ -455,12 +466,11 @@ io.sockets.on('connection', function(socket) {
 					newHost(games[master_indexes.i][2], gameID)
 					//transfer host
 				} 
-
 				updateGhostPlayersList(players_attributes, players_attributes[socket.id][0])
 
 				games[master_indexes.i].push(socket.id)
 				games[master_indexes.i].splice(master_indexes.p, 1);
-				autofillGhost(players_attributes, socket.id)
+				autofillGhost(players_attributes, socket.id, gameID)
 
 			}
 
@@ -496,6 +506,90 @@ io.sockets.on('connection', function(socket) {
 });
 //done with all socket message receiving
 
+function reanimate(gameID, shortname, socketID) {
+
+	online_players[socketID] = gameID;
+	games[findGame(gameID)].push(socketID);
+
+	var players_attributes = in_process_attributes[gameID];
+	for (let playerID in players_attributes) {
+		if (players_attributes[playerID][0] == "the ghost of " + shortname) {
+			var oldSocket = playerID
+			players_attributes[socketID] = players_attributes[playerID];
+			delete players_attributes[playerID];
+			break;
+		}
+	}
+
+	for (let playerID in players_attributes) {
+		if (players_attributes[playerID][8] == oldSocket) {
+			players_attributes[playerID][8] = socketID
+			break;
+		}
+	}
+
+	var posInGame = positionInGame(players_attributes)
+	console.log(players_attributes)
+	console.log(socketID)
+	console.log(shortname)
+	players_attributes[socketID][0] = shortname;
+	players_attributes[socketID][19] = false;
+
+	unAutofillGhost(players_attributes, socketID, posInGame)
+	necromancy(socketID, players_attributes, shortname)
+
+}
+
+function necromancy(socketID, players_attributes, shortname) {
+	//adds a message to the waitingScreen div saying they will be added soon, and
+	//update all player screen things and players list for the player that just joined
+	var listShortnames = [];
+	for (let player in players_attributes) {
+		listShortnames.push(players_attributes[player][0])
+		if (player != socketID) {
+			io.to(player).emit('reanimateGhostPlayerForEveryone', {shortname})
+		}
+	}
+	io.to(socketID).emit('playerWaitScreen', {listShortnames, shortname})
+}
+
+function positionInGame(players_attributes) {
+	//returns what stage of the game it is in
+	return players_attributes[Object.keys(players_attributes)[0]][21]
+}
+function unAutofillGhost(players_attributes, socketID, posInGame) {
+	//appropriately adjusts players_attributes based on the position in game
+	console.log(posInGame)
+
+	switch (posInGame) {
+
+		case 0:
+			players_attributes[socketID][9] = ''
+			players_attributes[socketID][10] = ''
+		case 1:
+		case 2:
+		case 3:
+			players_attributes[socketID][11] = false;
+		case 4:
+			players_attributes[socketID][12] = false;
+		case 5:
+		case 6:
+		case 7:
+			players_attributes[socketID][13] = ''
+			players_attributes[socketID][14] = ''
+			players_attributes[socketID][15] = ''
+		case 8:
+		case 9:
+			break;
+		case 10:
+			io.to(socketID).emit('lastRoundWinnerStoryHide')
+		default:
+			break;
+
+	}
+
+}
+
 function add_player_to_game(gameIndex, playerID, shortname) {
 	games[gameIndex].push(playerID);
 	add_player_to_player_attributes(playerID, shortname)
@@ -504,7 +598,6 @@ function add_player_to_game(gameIndex, playerID, shortname) {
 function initializeGame(gameID, playerID, shortname) {
 	games.push([gameID, playerID]);
 	add_player_to_player_attributes(playerID, shortname)
-	
 }
 
 function add_player_to_player_attributes(playerID, shortname) {
@@ -512,7 +605,7 @@ function add_player_to_player_attributes(playerID, shortname) {
 	all_player_attributes[playerID] = user_attributes;
 }
 
-function autofillGhost(players_attributes, playerID) {
+function autofillGhost(players_attributes, playerID, gameID) {
 
 	players_attributes[playerID][0] = "the ghost of " + players_attributes[playerID][0]
 	players_attributes[playerID][11] = true
@@ -534,7 +627,7 @@ function autofillGhost(players_attributes, playerID) {
 		players_attributes[playerID][9] = 'Your friend, the ghost, wrote a ghost story. But, we think it\'s too scary for you.'
 		players_attributes[playerID][10] = 'Boo!'
 		if (addOnePlayerToWaitingScreen(playerID, players_attributes, [9,10])) {
-			displayStories(online_players[playerID])
+			randomizeOrder(players_attributes, 'stories', gameID)
 		}
 	}
 
@@ -621,6 +714,7 @@ function whoIsAGhost(players_attributes) {
 
 function delayBeforeStartRound(players_attributes, function_call_when_done) {
 	for (let player in players_attributes) {
+		players_attributes[player][21] += 1 
 		io.to(player).emit('startRoundDelay', {function_call_when_done})
 	};
 }
@@ -750,6 +844,7 @@ function startGame(game_code, familyBool, getToKnowBool, replayBool) {
 		for (let x in players_attributes) {
 			var shortName = players_attributes[x][0]
 			io.to(playerID).emit('addPlayers', {shortName})
+			io.to(playerID).emit('addCookies', {shortName, game_code})
 		};
 		io.to(playerID).emit('addStartDelay');
 	};
@@ -766,6 +861,7 @@ function storyRound(game_code) {
 	var counter = 0;
 
 	for (let x in players_attributes) {
+		players_attributes[x][21] = 3
 		indexes[counter] = x;
 		counter += 1;
 	}
@@ -794,10 +890,6 @@ function storyRound(game_code) {
 	    }
 	  }
 	}
-
-	// for(var k = 0; k <= len; k++) {
-	//   console.log(k + ", " + transfers[k]);
-	// }
 
 	function contains(array, n) {
 	  for(var i = 0; i < array.length; i++) {
@@ -837,9 +929,14 @@ function displayQuestions(game_code) {
 
 function sendQuestionsRound(players_attributes) {
 
-	var num_players_in_game = Object.keys(players_attributes).length
+	return randomizeOrder(players_attributes, 'questions')
+}
+
+function randomizeOrder(players_attributes, scenarioDeterminer, game_code = 'toast') {
+
 	var donePlayers = [];
 	var keys = Object.keys(players_attributes);
+	var num_players_in_game = Object.keys(players_attributes).length
 
 	while (donePlayers.length < num_players_in_game) {
 
@@ -847,30 +944,44 @@ function sendQuestionsRound(players_attributes) {
 		var randPlayer = keys[randPlayerInt]
 
 		if (donePlayers.indexOf(randPlayer) < 0) {
-			if (!players_attributes[randPlayer][16] || !players_attributes[randPlayer][17] || !players_attributes[randPlayer][18]) {
 
-				while (true) {
-					var randQuestion = getRandomInt(18, 16)
-					if (!players_attributes[randPlayer][randQuestion]) {
+			if (scenarioDeterminer == 'stories') {
 
-						sendQuestionsToClient(players_attributes, randPlayer, randQuestion - 3)
-						players_attributes[randPlayer][randQuestion] = true;
-
-						if (players_attributes[randPlayer][16] && players_attributes[randPlayer][17] && players_attributes[randPlayer][18]) {
-							donePlayers.push(randPlayer)
-						}
-
-						return false;
-					}
+				if (!players_attributes[randPlayer][11]) {
+					sendStory(game_code, randPlayer)
+					return false
+				} else {
+					donePlayers.push(randPlayer)
 				}
 
 			} else {
-				donePlayers.push(randPlayer)
+
+				if (!players_attributes[randPlayer][16] || !players_attributes[randPlayer][17] || !players_attributes[randPlayer][18]) {
+
+					while (true) {
+						var randQuestion = getRandomInt(18, 16)
+						if (!players_attributes[randPlayer][randQuestion]) {
+
+							sendQuestionsToClient(players_attributes, randPlayer, randQuestion - 3)
+							players_attributes[randPlayer][randQuestion] = true;
+
+							if (players_attributes[randPlayer][16] && players_attributes[randPlayer][17] && players_attributes[randPlayer][18]) {
+								donePlayers.push(randPlayer)
+							}
+
+							return false;
+						}
+					}
+
+				} else {
+					donePlayers.push(randPlayer)
+				}
 			}
 		}
 	}
 
 	return true;
+
 }
 
 function sendQuestionsToClient (players_attributes, senderPlayer, questionIndex) {
@@ -879,6 +990,7 @@ function sendQuestionsToClient (players_attributes, senderPlayer, questionIndex)
 	var fakeQuestion = players_attributes[senderPlayer][questionIndex]
 
 	for (let player in players_attributes) {
+		players_attributes[player][21] = 9
 		if (player == players_attributes[senderPlayer][8]) {
 			var answererShortname = players_attributes[player][0]
 			var realAnswer = players_attributes[player][questionIndex - 8]
@@ -892,10 +1004,11 @@ function sendQuestionsToClient (players_attributes, senderPlayer, questionIndex)
 
 }
 
-function displayStories(game_code) {
-	var host = find_host(game_code)
-	sendStory(game_code, host)
-};
+// function displayStories(game_code) {
+// 	var host = find_host(game_code)
+
+// 	sendStory(game_code, host)
+// };
 
 function sendStory(game_code, player_id) {
 
@@ -906,6 +1019,7 @@ function sendStory(game_code, player_id) {
 	var shortName = players_attributes[player_id][0]
 
 	for (let output_player in players_attributes) {
+		players_attributes[output_player][21] = 4
 		io.to(output_player).emit('displayStory', {shortName, story, story_title});
 	};
 
@@ -930,6 +1044,7 @@ function votingStories(game_code) {
 		var client_shortname = players_attributes[output_player][0]
 		//this is so that the client does not display the drop down with the player's own
 		//name in it
+		players_attributes[output_player][21] = 5
 		io.to(output_player).emit('displayStoryVoting', {storiesList, client_shortname});
 	};
 };
@@ -940,6 +1055,7 @@ function showVotes(game_code, players_attributes, lastRoundBoolean) {
 	var scores = sortScores(players_attributes)
 
 	for (let player in players_attributes) {
+		players_attributes[player][21] += 1
 		io.to(player).emit('displayScores', {scores, lastRoundBoolean})
 	};
 
@@ -1119,6 +1235,6 @@ function destroy_game(game_code) {
 
 function initialize_user_attributes(short_name) {
 	var score = 0;
-	var q1 = "", q2 = "", q3 = "", a1 = "", a2 = "", a3 = "", f1 = "", f2 = "", f3 = "", done1 = false, done2 = false, done3 = false, answerer = "", story = "", story_title = "", story_read = false, story_vote = false, ghost_bool = false, game_over = false;
-	return [short_name, score, q1, q2, q3, a1, a2, a3, answerer, story, story_title, story_read, story_vote, f1, f2, f3, done1, done2, done3, ghost_bool, game_over];
+	var q1 = "", q2 = "", q3 = "", a1 = "", a2 = "", a3 = "", f1 = "", f2 = "", f3 = "", done1 = false, done2 = false, done3 = false, answerer = "", story = "", story_title = "", story_read = false, story_vote = false, ghost_bool = false, game_over = false, round_tracker = 0;
+	return [short_name, score, q1, q2, q3, a1, a2, a3, answerer, story, story_title, story_read, story_vote, f1, f2, f3, done1, done2, done3, ghost_bool, game_over, round_tracker];
 };

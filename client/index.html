@@ -7,9 +7,50 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Varela+Round">
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <script> 
 
 	var socket = io();
+
+	socket.on('checkCookie', function() {
+		var username = getCookie('username')
+		var gamecode = getCookie('gamecode')
+		socket.emit('checkedCookie', {username, gamecode})
+	});
+
+	socket.on('addCookies', function(data) {
+		setCookie('username', data.shortName, 30);
+		setCookie('gamecode', data.game_code, 30);
+	});
+
+	function setCookie(cname,cvalue,minutes) {
+		var d = new Date();
+		d.setTime(d.getTime() + (minutes*60*1000));
+		var expires = "expires=" + d.toGMTString();
+		document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+	}
+
+	function getCookie(cname) {
+		var name = cname + "=";
+		var decodedCookie = decodeURIComponent(document.cookie);
+		var ca = decodedCookie.split(';');
+		for(var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == ' ') {
+			c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+			return c.substring(name.length, c.length);
+			}
+		}
+		return "";
+	}
+
+	// $(document).ready(function() {
+	// 	document.body.addEventListener("mousemove", function () {
+	// 		$('audio#music')[0].play()
+	// 	})
+	// });
 
 	var playerCounter = 0 
 
@@ -326,6 +367,28 @@
 		initializeTimer(5, realFunctionCall, 'waitingText', true, "dummy")
 	});
 
+	socket.on('playerWaitScreen', function(data) {
+		nonHostJoinedLobby()
+		document.getElementById('shortnameID').innerHTML = data.shortname
+		document.getElementById('waitingText').innerHTML = 'Please wait while the current round is being played. You will re-enter the game in the next round.'
+		for (var i = 0; i < data.listShortnames.length; i++) {
+			addPlayersToSidebar(data.listShortnames[i])
+		}
+	})
+
+	socket.on('reanimateGhostPlayerForEveryone', function(data) {
+		const listOfPlayers = document.getElementById('playersListContainer').childNodes
+		for (var i = 0; i < listOfPlayers.length; i++) {
+			if (listOfPlayers[i].innerHTML == data.shortname + " (ghost)" ) {
+				var actualID = listOfPlayers[i].id
+				document.getElementById(actualID).innerHTML = data.shortname
+				document.getElementById(actualID).style.fontStyle = 'normal'
+				alert("Player " + data.shortname + " has rejoined.")
+				//update the id with ghost
+			}
+		}
+	});
+
 	socket.on('showWaitingScreen', function() {
 		document.getElementById('round5').style.display = 'none';
 		document.getElementById('waitingScreen').style.display = 'inherit';
@@ -349,15 +412,19 @@
 	})
 
 	socket.on('addPlayers', function(data) {
+		addPlayersToSidebar(data.shortName);
+	});
+
+	function addPlayersToSidebar(shortname) {
 		playerCounter += 1;
 		var htmlID = 'player' + playerCounter;
 		var newElement = document.createElement('A');
-		newElement.innerHTML = data.shortName;
+		newElement.innerHTML = shortname;
 		newElement.setAttribute('id',htmlID);
 		newElement.setAttribute('style','grid-column: 1;grid-row:' + playerCounter);
 		newElement.setAttribute('class','playerItem');
 		document.getElementById('playersListContainer').appendChild(newElement);
-	});
+	}
 
 	socket.on('takeAnswers', function(data) {
 		const waitingList = document.getElementById('listPlayers')
@@ -619,9 +686,15 @@
 		document.getElementById('gameMenu').style.display = 'none';
 	}
 
-	socket.on('backToLobbyNewGameHost', function() {
+	socket.on('lastRoundWinnerStoryHide', function() {
+		document.getElementById('waitingText').innerHTML = ''
+		document.getElementById('waitingScreen').style.display = 'none'
+	})
+
+	socket.on('backToLobbyNewGameHost', function(data) {
 		trashOldGame()
 		var shortname = document.getElementById('shortnameID').innerHTML
+		document.getElementById('playersList').innerHTML = 'Players in lobby:' + data.shortnamesList
 		createdLobby(shortname)
 		invertGameDisplay()
 		document.getElementById('startMenu').style.display = 'flex'
@@ -805,6 +878,16 @@
 		document.getElementById('errorNotEnoughPlayers').style.display = 'inherit'
 	});
 
+	// function toggleAudioSettings() {
+	// 	console.log('called')
+	// 	if ($('#audioMenu').css('display') == 'none') {
+	// 		$('#audioMenu').css('display', 'block')
+	// 	} else {
+	// 		console.log('here')
+	// 		$('#audioMenu').css('display', 'none')
+	// 	}
+	// }
+
 </script>
 
 <body>
@@ -816,13 +899,20 @@
 		<a id='cannedAnswer2'></a>
 		<a id='cannedAnswer3'></a>
 	</div>
-<!-- 	<input id='gameSettings' type='image' onclick='toggleSettingsInGame()' src='http://localhost:2000/client/settings_gear_small.png' style='position:absolute;right:0;margin-top:0;margin-right:10px;display:none;'> -->
+	<!-- <button onclick='toggleAudioSettings()' class="mdc-icon-button material-icons" style='font-size:60px;position:absolute;right:0;top:0;color:#686868;margin:10px;outline:none;'>settings</button>
+	<div id='audioMenu' class='card' style='display:none;width:100px;height:100px;z-index:10;position:absolute;right:0;top:70px;'>
+		<a>Audio Off</a>
+		<a>Volume</a>
+	</div> -->
 	<div id='headerBig' class='titleBig headerFont'>
 		<a href='http://www.palabr.io'class= 'pbr-text-large' style='text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
 	<div id='headerSmall' class='titleSmall headerFont' style='display: none;'>
 		<a href='http://www.palabr.io'class= '' style='text-align:left;text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
+	<audio loop id='music'>
+		<source src='/client/palabriotheme.mp3' type='audio/mpeg'>
+	</audio>
 
 	<div id='startMenu' class='card menuStart'>
 		<a id='welcomeText' class='boxText'>Come flex your creative muscles and get to know your friends! Click the button below to create a private game, or input a game ID to join an existing one.</a>
@@ -1036,10 +1126,12 @@
 					<a id='winningStoryShortname' class='authorDisplay card'></a>
 					<a id='winningStory' class='storyDisplay card'></a>
 				</div>
-
-				<button id='returnLobbyButton' class ='pbr-yellow button' style='height:35px;width:114px;align-self:start;display:none;' onclick='lobbyGame()'>Return to Lobby</button>
-				<button id='playAgainButton' class ='pbr-yellow button' style='height:35px;width:114px;align-self:start;display:none;' onclick='playAgain()'>Play Again</button>
-				<a id='errorNotEnoughPlayers' style='display:none;'>Error: after removing ghost players, there are not enough players to play another game. Please return to lobby.</a>
+				<div style='display:flex;flex-direction:column;grid-column:2'>
+					<button id='returnLobbyButton' class ='pbr-yellow button' style='height:35px;width:125px;margin-bottom:30px;display:none;' onclick='lobbyGame()'>Return to Lobby</button>
+					<button id='playAgainButton' class ='pbr-yellow button' style='height:35px;width:95px;display:none;' onclick='playAgain()'>Play Again</button>
+				</div>
+				
+				<a id='errorNotEnoughPlayers' style='display:none;color:red;'>Error: after removing ghost players, there are not enough players to play another game. Please return to lobby.</a>
 
 			</div>
 
