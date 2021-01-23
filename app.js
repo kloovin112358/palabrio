@@ -529,9 +529,6 @@ function reanimate(gameID, shortname, socketID) {
 	}
 
 	var posInGame = positionInGame(players_attributes)
-	console.log(players_attributes)
-	console.log(socketID)
-	console.log(shortname)
 	players_attributes[socketID][0] = shortname;
 	players_attributes[socketID][19] = false;
 
@@ -559,15 +556,17 @@ function positionInGame(players_attributes) {
 }
 function unAutofillGhost(players_attributes, socketID, posInGame) {
 	//appropriately adjusts players_attributes based on the position in game
-	console.log(posInGame)
 
 	switch (posInGame) {
 
 		case 0:
-			players_attributes[socketID][9] = ''
-			players_attributes[socketID][10] = ''
+			players_attributes[socketID][5] = ''
+			players_attributes[socketID][6] = ''
+			players_attributes[socketID][7] = ''
 		case 1:
 		case 2:
+			players_attributes[socketID][9] = ''
+			players_attributes[socketID][10] = ''
 		case 3:
 			players_attributes[socketID][11] = false;
 		case 4:
@@ -651,43 +650,52 @@ function newHost(new_host, gameID) {
 	}
 	//host left, someone needs the finish button
 
-	var flag = false;
-	for (let player in players_attributes) {
-		if (players_attributes[player][9] == '' || players_attributes[player][10] == '') {
-			flag = true;
-			break;
-		}
+	var posInGame = positionInGame(players_attributes)
+
+	if (posInGame == 4) {
+		io.to(new_host).emit('addContinueButton')
+	} else if (posInGame == 9) {
+		io.to(new_host).emit('addContinueQuestionButton')
 	}
 
-	if (!flag) {
-		for (let player in players_attributes) {
-			if (!players_attributes[player][11]) {
-				flag = true;
-				io.to(new_host).emit('addContinueButton')
-				return;
-			}
-		}
-	}
-	//host left, someone needs next story button
+	// var flag = false;
+	// for (let player in players_attributes) {
+	// 	if (players_attributes[player][9] == '' || players_attributes[player][10] == '') {
+	// 		flag = true;
+	// 		break;
+	// 	}
+	// }
+	// //if the story round is not done yet
 
-	flag = false;
+	// if (!flag) {
+	// 	for (let player in players_attributes) {
+	// 		if (!players_attributes[player][11]) {
+	// 			flag = true;
+	// 			io.to(new_host).emit('addContinueButton')
+	// 			return;
+	// 		}
+	// 	}
+	// }
+	// //host left, someone needs next story button
 
-	for (let player in players_attributes) {
-		if (players_attributes[player][13] == '' || players_attributes[player][14] == '' || players_attributes[player][15] == '') {
-			flag = true;
-			return;
-		}
-	}
+	// flag = false;
 
-	if (!flag) {
-		for (let player in players_attributes) {
-			if (!players_attributes[player][16] || !players_attributes[player][17] || !players_attributes[player][18]) {
-				io.to(new_host).emit('addContinueQuestionButton')
-				return;
-			}
-		}
-	}
-	//host left, someone needs the next fake question button
+	// for (let player in players_attributes) {
+	// 	if (players_attributes[player][13] == '' || players_attributes[player][14] == '' || players_attributes[player][15] == '') {
+	// 		flag = true;
+	// 		return;
+	// 	}
+	// }
+
+	// if (!flag) {
+	// 	for (let player in players_attributes) {
+	// 		if (!players_attributes[player][16] || !players_attributes[player][17] || !players_attributes[player][18]) {
+	// 			io.to(new_host).emit('addContinueQuestionButton')
+	// 			return;
+	// 		}
+	// 	}
+	// }
+	// //host left, someone needs the next fake question button
 
 }
 
