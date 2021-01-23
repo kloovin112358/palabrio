@@ -19,7 +19,7 @@
 	});
 
 	socket.on('addCookies', function(data) {
-		setCookie('username', data.shortName, 30);
+		setCookie('username', data.shortGuy, 30);
 		setCookie('gamecode', data.game_code, 30);
 	});
 
