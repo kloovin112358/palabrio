@@ -474,7 +474,6 @@ io.sockets.on('connection', function(socket) {
 				delete in_process_attributes[gameID];
 			} else {
 				//if they are not the last one in the game
-				console.log(find_host(gameID))
 				if (find_host(gameID) == socket.id) {
 					//if they are the host
 					for (let player in players_attributes) {
@@ -531,20 +530,6 @@ function reanimate(gameID, shortname, socketID) {
 	var players_attributes = in_process_attributes[gameID];
 	online_players[socketID] = gameID;
 
-	var gamePeople = games[findGame(gameID)]
-	for (var i = 0; i < gamePeople.length; i++) {
-		if (players_attributes[gamePeople[i]][19]) {
-			//once we have found a ghost in the list
-			gamePeople.splice(i, socketID)
-			break;
-		}
-	}
-	console.log(gamePeople)
-	console.log(games[findGame(gameID)])
-	//move the player in the list in front of the ghosts
-	// games[findGame(gameID)].push(socketID);
-
-	
 	for (let playerID in players_attributes) {
 		if (players_attributes[playerID][0] == "the ghost of " + shortname) {
 			var oldSocket = playerID
@@ -553,6 +538,40 @@ function reanimate(gameID, shortname, socketID) {
 			break;
 		}
 	}
+
+	console.log('old socket: ' + oldSocket)
+	console.log('new socket: ' + socketID)
+	var gamePeople = games[findGame(gameID)]
+	console.log('game people: ' + gamePeople)
+
+	for (var i = 1; i < gamePeople.length; i++) {
+		if (gamePeople[i] == oldSocket) {
+			gamePeople.splice(i, 1);
+			//this removes the old socketID from games
+		}
+	}
+
+	var any_ghosts = false;
+	for (var i = 1; i < gamePeople.length; i++) {
+		if (players_attributes[gamePeople[i]][19]) {
+			//once we have found a ghost in the list
+			gamePeople.splice(i, 0, socketID)
+			any_ghosts = true;
+			break;
+		}
+	}
+
+	if (!any_ghosts) {
+		gamePeople.push(socketID)
+	}
+	
+	console.log('game people 2: ' + gamePeople)
+
+	//move the player in the list in front of the ghosts
+	// games[findGame(gameID)].push(socketID);
+
+
+
 
 	for (let playerID in players_attributes) {
 		if (players_attributes[playerID][8] == oldSocket) {
