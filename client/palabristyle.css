@@ -1,28 +1,16 @@
-/*@media screen and (max-width: 600px) {
+/* @media screen and (max-width: 600px) {
+	#smallDeviceAlert {
+		display:block;
+	}
+} */
 
-  div.menuStart {
-  	width:80%;
-  	height:50%;
-  	font-size:0.8rem;
-  }
+@media screen and (min-width: 0px) and (max-width: 600px) {
+	#smallDeviceAlert { display: block; }  /* show it on small screens */
+}
 
-  button.button {
-  	font-size:0.8rem;
-  }
-
-  div.footer {
-  	display:none;
-  }
-
-  div.titleBig {
-  	display:none;
-  }
-
-  div.menuGame {
-  	width:90%;
-	height:80%;
-  }
-}*/
+@media screen and (min-width: 601px) {
+	#smallDeviceAlert { display: none; }   /* hide it elsewhere */
+}
 
 /*@font-face {
    font-family: 'alba';
@@ -37,11 +25,25 @@
 	overflow:hidden;
 	text-align:center;
 }
+/* 
+#audioSett:hover {
+	cursor:pointer;
+} */
+
+.material-icons {
+	cursor:pointer;
+}
 
 /*blank comment*/
 
 .titleBig a {
 	display:inline;
+}
+
+#smallDeviceAlert {
+	width:100%;
+	background-color:#be1e2d;
+	text-align:center;
 }
 
 .titleSmall {
@@ -648,9 +650,7 @@ a, a:visited {
 }
 
 select {
-  // A reset of styles, including removing the default dropdown arrow
   appearance: none;
-  // Additional resets for further consistency
   background-color: transparent;
   border: none;
   font-size:1.1vw;

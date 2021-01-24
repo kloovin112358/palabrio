@@ -568,10 +568,6 @@ function reanimate(gameID, shortname, socketID) {
 	console.log('game people 2: ' + gamePeople)
 
 	//move the player in the list in front of the ghosts
-	// games[findGame(gameID)].push(socketID);
-
-
-
 
 	for (let playerID in players_attributes) {
 		if (players_attributes[playerID][8] == oldSocket) {

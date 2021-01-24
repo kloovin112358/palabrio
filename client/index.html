@@ -46,11 +46,14 @@
 		return "";
 	}
 
-	// $(document).ready(function() {
-	// 	document.body.addEventListener("mousemove", function () {
-	// 		$('audio#music')[0].play()
-	// 	})
-	// });
+	$(document).ready(function() {
+		document.body.addEventListener("click", playMusic)
+	});
+
+	function playMusic() {
+		$('audio#music')[0].play()
+		document.body.removeEventListener("click", playMusic)
+	}
 
 	var playerCounter = 0 
 
@@ -882,15 +885,30 @@
 		document.getElementById('errorNotEnoughPlayers').style.display = 'inherit'
 	});
 
-	// function toggleAudioSettings() {
-	// 	console.log('called')
-	// 	if ($('#audioMenu').css('display') == 'none') {
-	// 		$('#audioMenu').css('display', 'block')
-	// 	} else {
-	// 		console.log('here')
-	// 		$('#audioMenu').css('display', 'none')
-	// 	}
-	// }
+	function toggleAudioSettings(itemID) {
+		if ($(itemID).css('display') == 'none') {
+			$(itemID).css('display', 'block')
+		} else {
+			$(itemID).css('display', 'none')
+		}
+	}
+
+	function musicOff() {
+		$('audio#music')[0].pause()
+		$('#music_off').css('display', 'none')
+		$('#music_on').css('display', 'block')
+	}
+
+	function musicOn() {
+		$('audio#music')[0].play()
+		$('#music_on').css('display', 'none')
+		$('#music_off').css('display', 'block')
+	}
+
+	window.SetVolume = function(val) {
+		var player = document.getElementById('music');
+		player.volume = val / 100;
+	}
 
 </script>
 
@@ -903,11 +921,16 @@
 		<a id='cannedAnswer2'></a>
 		<a id='cannedAnswer3'></a>
 	</div>
-	<!-- <button onclick='toggleAudioSettings()' class="mdc-icon-button material-icons" style='font-size:60px;position:absolute;right:0;top:0;color:#686868;margin:10px;outline:none;'>settings</button>
-	<div id='audioMenu' class='card' style='display:none;width:100px;height:100px;z-index:10;position:absolute;right:0;top:70px;'>
-		<a>Audio Off</a>
-		<a>Volume</a>
-	</div> -->
+	<button id='audioSett' onclick='toggleAudioSettings("#audioMenu")' class="mdc-icon-button material-icons" style='font-size:60px;position:absolute;right:0;top:0;color:#686868;margin:10px;border:none;background-color:transparent;'>settings</button>
+	<div id='audioMenu' class='card' style='display:none;width:auto;z-index:10;position:absolute;right:0;margin-right:20px;top:90px;'>
+		<button id='music_on' onclick='musicOn()' class='mdc-icon-button material-icons' style='display:none;margin:auto;margin-top:20px;font-size:60px;border:none;background-color:transparent;'>music_note</button>
+		<button id='music_off' onclick='musicOff()' class='mdc-icon-button material-icons' style='display:block;margin:auto;margin-top:20px;font-size:60px;border:none;background-color:transparent;'>music_off</button>
+		<!-- <a style='left:50px;'>Volume</a><br> -->
+		<input id="vol-control" type="range" min="0" max="100" value='100' step="1" oninput="SetVolume(this.value)" onchange="SetVolume(this.value)" style='margin:20px;'></input>
+	</div>
+	<div id='smallDeviceAlert'>
+		<a>We've detected you're using a handheld device. Features may not display properly.</a>
+	</div>
 	<div id='headerBig' class='titleBig headerFont'>
 		<a href='http://www.palabr.io'class= 'pbr-text-large' style='text-decoration:none;'><span class='pbr-text-blue'>palabr</span>.<span class='pbr-text-red'>io</span></a>
 	</div>
