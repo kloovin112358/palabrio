@@ -1,9 +1,3 @@
-/* @media screen and (max-width: 600px) {
-	#smallDeviceAlert {
-		display:block;
-	}
-} */
-
 @media screen and (min-width: 0px) and (max-width: 600px) {
 	#smallDeviceAlert { display: block; }  /* show it on small screens */
 }
@@ -25,16 +19,10 @@
 	overflow:hidden;
 	text-align:center;
 }
-/* 
-#audioSett:hover {
-	cursor:pointer;
-} */
 
 .material-icons {
 	cursor:pointer;
 }
-
-/*blank comment*/
 
 .titleBig a {
 	display:inline;
@@ -100,8 +88,6 @@
 .buttonLink {
 	background: none!important;
 	border: none;
-/*	padding: 0!important;*/
-	/*optional*/
 	color: #21409a;
 	cursor: pointer;
 }
@@ -638,7 +624,6 @@ html,body{
 	height:100%;
 	padding:0;
 	margin:0;
-/*	overflow:hidden;*/
 }
 
 li {

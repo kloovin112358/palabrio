@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html>
+<!-- Palabrio, created in 2020-2021 by Kevin Lauer and 
+Emily Lucas. Music by Colin Winkelmann.  -->
 <title>palabr.io</title>
 <link rel='icon' href='/client/palabricon.png'>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -264,7 +266,6 @@
 		document.getElementById('headerBig').style.display = 'none';
 		document.getElementById('credits').style.display = 'none';
 		document.getElementById('headerSmall').style.display = 'inline';
-		// document.getElementById('gameSettings').style.display = 'inherit';
 		document.getElementById('gameMenu').style.display = 'block';
 	}
 
@@ -563,7 +564,6 @@
 		document.getElementById('instructions').innerHTML = 'Send an emoji for how funny you think everyone\'s questions were. Or don\'t, if they weren\'t funny.'
 
 		document.getElementById('spotlightID').innerHTML = data.senderPlayer
-		// document.getElementById('questionShortname').innerHTML = data.senderShortname
 		document.getElementById('fakeQuestion').innerHTML = '<span style="color:black;font-style:italic;font-weight:400;">' + data.senderShortname + "'s question: " + "</span>" + data.fakeQuestion
 		document.getElementById('realAnswer').innerHTML = '<span style="color:black;font-style:italic;">' + data.answererShortname + "'s answer: " + "</span>" + data.realAnswer
 		document.getElementById('realQuestion').innerHTML = data.realQuestion
@@ -895,14 +895,14 @@
 
 	function musicOff() {
 		$('audio#music')[0].pause()
-		$('#music_off').css('display', 'none')
-		$('#music_on').css('display', 'block')
+		$('#music_on').css('display', 'none')
+		$('#music_off').css('display', 'block')
 	}
 
 	function musicOn() {
 		$('audio#music')[0].play()
-		$('#music_on').css('display', 'none')
-		$('#music_off').css('display', 'block')
+		$('#music_off').css('display', 'none')
+		$('#music_on').css('display', 'block')
 	}
 
 	window.SetVolume = function(val) {
@@ -923,9 +923,8 @@
 	</div>
 	<button id='audioSett' onclick='toggleAudioSettings("#audioMenu")' class="mdc-icon-button material-icons" style='font-size:60px;position:absolute;right:0;top:0;color:#686868;margin:10px;border:none;background-color:transparent;'>settings</button>
 	<div id='audioMenu' class='card' style='display:none;width:auto;z-index:10;position:absolute;right:0;margin-right:20px;top:90px;'>
-		<button id='music_on' onclick='musicOn()' class='mdc-icon-button material-icons' style='display:none;margin:auto;margin-top:20px;font-size:60px;border:none;background-color:transparent;'>music_note</button>
-		<button id='music_off' onclick='musicOff()' class='mdc-icon-button material-icons' style='display:block;margin:auto;margin-top:20px;font-size:60px;border:none;background-color:transparent;'>music_off</button>
-		<!-- <a style='left:50px;'>Volume</a><br> -->
+		<button id='music_on' onclick='musicOff()' class='mdc-icon-button material-icons' style='display:block;margin:auto;margin-top:20px;font-size:60px;border:none;background-color:transparent;'>music_note</button>
+		<button id='music_off' onclick='musicOn()' class='mdc-icon-button material-icons' style='display:none;margin:auto;margin-top:20px;font-size:60px;border:none;background-color:transparent;'>music_off</button>
 		<input id="vol-control" type="range" min="0" max="100" value='100' step="1" oninput="SetVolume(this.value)" onchange="SetVolume(this.value)" style='margin:20px;'></input>
 	</div>
 	<div id='smallDeviceAlert'>
@@ -940,6 +939,7 @@
 	<audio loop id='music'>
 		<source src='/client/palabriotheme.mp3' type='audio/mpeg'>
 	</audio>
+	<!-- music by Colin Winkelmann -->
 
 	<div id='startMenu' class='card menuStart'>
 		<a id='welcomeText' class='boxText'>Come flex your creative muscles and get to know your friends! Click the button below to create a private game, or input a game ID to join an existing one.</a>
@@ -959,7 +959,7 @@
 		<a id = 'playersList' class= 'pbr-text-blue centerText' style = 'display: none;flex-grow:1;margin:0px 20px 20px 20px;width:100%'></a>
 		<a id = 'errorMsg' class= 'pbr-text-red centerText' style = 'display: none;flex-grow:1;margin:0px 20px 20px 20px;width:100%'></a>
 
-		<a id='howToPlay' class='pbr-text-blue' style='padding:0px 20px 20px 20px;display:none;font-size:14px;'>Palabr.io has three rounds. For the first round, you will answer three questions. Next, you will receive the answers from another player and you will incorporate those into a story. After voting on who was best, you will take those answers you received and you will write questions that make the answers sound ridiculous.</a>
+		<a id='howToPlay' class='pbr-text-blue' style='padding:0px 20px 20px 20px;display:none;font-size:14px;'>Palabr.io has three rounds. For the first round, you will answer three questions. Next, you will receive the answers from another player and incorporate those into a story. After voting on who was best, you will take those answers you received and write questions that make the answers sound ridiculous. Have fun!</a>
 
 		<div id='settingsMenu' class='settingsMenu' style='display:none;padding:10px;'>
 			<label class='switch col2-row1'>
@@ -1129,7 +1129,6 @@
 
 				<div id='questionDisplayFlexBox' class='col1-row1'>
 					<a id='spotlightID' style='display:none;'></a>
-<!-- 					<a id='questionShortname' class='pbr-text-blue'></a> -->
 					<a id='realQuestion' class='pbr-text-blue'></a>
 					<a id='realAnswer' class='pbr-text-blue'></a>
 					<a id='fakeQuestion' class='pbr-text-blue'></a>
