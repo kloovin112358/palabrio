@@ -1,6 +1,5 @@
 var express = require('express');
 var app = express();
-var cookieParser = require('cookie-parser'); 
 var serv = require('http').Server(app);
 
 app.get('/',function(req,res) {
@@ -11,8 +10,6 @@ app.use('/client',express.static(__dirname + '/client'));
 
 serv.listen(process.env.PORT || 2000);
 console.log("Server started.");
-
-app.use(cookieParser()); 
 
 var io = require('socket.io')(serv, {});
 
@@ -629,12 +626,19 @@ function unAutofillGhost(players_attributes, socketID, posInGame) {
 		case 9:
 			break;
 		case 10:
-			io.to(socketID).emit('lastRoundWinnerStoryHide')
+			// io.to(socketID).emit('lastRoundWinnerStoryHide')
+			showVotesNoGhost(players_attributes, socketID)
 		default:
 			break;
 
 	}
 
+}
+
+function showVotesNoGhost(players_attributes, socketID) {
+	var scores = sortScores(players_attributes)
+	var lastRoundBoolean = false;
+	io.to(socketID).emit('displayScores', {scores, lastRoundBoolean})
 }
 
 function add_player_to_game(gameIndex, playerID, shortname) {
