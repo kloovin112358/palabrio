@@ -52,9 +52,17 @@
 	});
 
 	function playMusic() {
+		$('audio#music')[0].volume = 0.5;
 		$('audio#music')[0].play()
 		document.body.removeEventListener("click", playMusic)
 	}
+
+	socket.on('noAutoPlayMusic', function() {
+		$('audio#music')[0].volume = 0.5;
+		$('#music_on').css('display', 'none')
+		$('#music_off').css('display', 'block')
+		document.body.removeEventListener("click", playMusic)
+	});
 
 	var playerCounter = 0 
 
@@ -695,7 +703,7 @@
 	socket.on('lastRoundWinnerStoryHide', function() {
 		document.getElementById('waitingText').innerHTML = ''
 		document.getElementById('waitingScreen').style.display = 'none'
-		
+
 	})
 
 	socket.on('backToLobbyNewGameHost', function(data) {
@@ -704,6 +712,9 @@
 		document.getElementById('playersList').innerHTML = 'Players in lobby:' + data.shortnamesList
 		createdLobby(shortname)
 		invertGameDisplay()
+		document.getElementById('shareCode').innerHTML = 'Game ID: ' + data.gameID
+		document.getElementById('shareCode').style.display = 'grid'
+		document.getElementById('copyGameCode').style.display = 'grid'
 		document.getElementById('startMenu').style.display = 'flex'
 	})
 
@@ -755,6 +766,12 @@
 		document.getElementById('votingButton2').disabled = true;
 		document.getElementById('votingButton3').disabled = true;
 	};
+
+	socket.on('areYouStuck', function() {
+		if (document.getElementById('waitingText').innerHTML == 'Please wait while the current round is being played. You will re-enter the game in the next round.') {
+			socket.emit('stuckInWaitingLimbo')
+		}
+	});
 
 	socket.on('donePlayers', function(data) {
 		if (data.first_bool == true) {
@@ -925,7 +942,7 @@
 	<div id='audioMenu' class='card' style='display:none;width:auto;z-index:10;position:absolute;right:0;margin-right:20px;top:90px;'>
 		<button id='music_on' onclick='musicOff()' class='mdc-icon-button material-icons' style='display:block;margin:auto;margin-top:20px;font-size:60px;border:none;background-color:transparent;'>music_note</button>
 		<button id='music_off' onclick='musicOn()' class='mdc-icon-button material-icons' style='display:none;margin:auto;margin-top:20px;font-size:60px;border:none;background-color:transparent;'>music_off</button>
-		<input id="vol-control" type="range" min="0" max="100" value='100' step="1" oninput="SetVolume(this.value)" onchange="SetVolume(this.value)" style='margin:20px;'></input>
+		<input id="vol-control" type="range" min="0" max="100" value='50' step="1" oninput="SetVolume(this.value)" onchange="SetVolume(this.value)" style='margin:20px;'></input>
 	</div>
 	<div id='smallDeviceAlert'>
 		<a>We've detected you're using a handheld device. Features may not display properly.</a>

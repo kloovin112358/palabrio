@@ -87,6 +87,7 @@ io.sockets.on('connection', function(socket) {
 				var players_attributes = in_process_attributes[data.gamecode]
 				for (let player in players_attributes) {
 					if (players_attributes[player][0] == data.username + " (ghost)" ) {
+						io.to(socket.id).emit('noAutoPlayMusic')
 						reanimate(data.gamecode, data.username, socket.id);
 						flag = true;
 						break;
@@ -398,40 +399,63 @@ io.sockets.on('connection', function(socket) {
 	});
 
 	socket.on('returnGameToLobby', function() {
+		returnEveryoneToLobby(socket.id)
+	})
+
+	socket.on('stuckInWaitingLimbo', function() {
 
 		var gameID = online_players[socket.id];
-		var players_attributes_old = in_process_attributes[gameID];
-		var players_attributes = {};
-		Object.assign(players_attributes, players_attributes_old);
-		var host = find_host(gameID)
-		destroy_game(gameID)
+		var players_attributes = in_process_attributes[gameID];
+		var posInGame = positionInGame(players_attributes);
 
-		initializeGame(gameID, host, players_attributes[host][0])
-		var indexOfGame = findGame(gameID);
-
-		shortnamesList = '';
-		var front = ' '
-
-		for (var i = 0; i < Object.keys(players_attributes).length; i++) {
-			if (players_attributes[Object.keys(players_attributes)[i]][19] == false) {
-
-				shortnamesList += front + ((players_attributes[Object.keys(players_attributes)[i]][0]))
-				if (Object.keys(players_attributes)[i] == socket.id) {
-					shortnamesList += ' (you)'
+		switch (posInGame) {
+			case 0:
+				for (let player in players_attributes) {
+					players_attributes[player][21] = 1;
+					sendQuestions(player, players_attributes);
 				}
-				
-				front = ', '
-			}
-		}
-		//#TODO get string concat set up to send over shortnamesList
-
-		for (let player in players_attributes) {
-			if (player != host && !players_attributes[player][19]) {
-				add_player_to_game(indexOfGame, player, players_attributes[player][0])
-				io.to(player).emit('backToLobbyNewGame')
-			} else if (!players_attributes[player][19]) {
-				io.to(player).emit('backToLobbyNewGameHost', {shortnamesList})
-			}
+				break;
+			case 1:
+				delayBeforeStartRound(players_attributes, 'start_story_rd');
+				break;
+			case 2:
+				storyRound(gameID);
+				break;
+			case 3:
+				randomizeOrder(players_attributes, 'stories', gameID);
+				break;
+			case 4:
+				votingStories(gameID);
+				break;
+			case 5:
+				showVotes(gameID, players_attributes, false)
+				break;
+			case 6:
+				delayBeforeStartRound(players_attributes, 'start_making_questions');
+				break;
+			case 7:
+				for (let player in players_attributes) {
+					players_attributes[player][21] = 8
+					var answerer = players_attributes[player][8]
+		
+					ans1 = players_attributes[answerer][5]
+					ans2 = players_attributes[answerer][6]
+					ans3 = players_attributes[answerer][7]
+		
+					io.to(player).emit('startMakingQuestions', {ans1, ans2, ans3})
+				};
+				break;
+			case 8:
+				sendQuestionsRound(players_attributes);
+				break;
+			case 9:
+				showVotes(gameID, players_attributes, true);
+				break;
+			case 10:
+				returnEveryoneToLobby(socket.id)
+				break;
+			default:
+				break;
 		}
 
 	})
@@ -488,6 +512,12 @@ io.sockets.on('connection', function(socket) {
 
 				autofillGhost(players_attributes, socket.id, gameID)
 
+				if (list_of_ghosts.length + 1 == Object.keys(players_attributes).length - 1) {
+					//this is the case where there is only one lone soul left in the game now
+					var loneRanger = games[master_indexes.i][1]
+					io.to(loneRanger).emit('areYouStuck')
+				}
+
 			}
 
 
@@ -522,6 +552,43 @@ io.sockets.on('connection', function(socket) {
 });
 //done with all socket message receiving
 
+function returnEveryoneToLobby(socketID) {
+	var gameID = online_players[socketID];
+	var players_attributes_old = in_process_attributes[gameID];
+	var players_attributes = {};
+	Object.assign(players_attributes, players_attributes_old);
+	var host = find_host(gameID)
+	destroy_game(gameID)
+
+	initializeGame(gameID, host, players_attributes[host][0])
+	var indexOfGame = findGame(gameID);
+
+	shortnamesList = '';
+	var front = ' '
+
+	for (var i = 0; i < Object.keys(players_attributes).length; i++) {
+		if (players_attributes[Object.keys(players_attributes)[i]][19] == false) {
+
+			shortnamesList += front + ((players_attributes[Object.keys(players_attributes)[i]][0]))
+			if (Object.keys(players_attributes)[i] == socketID) {
+				shortnamesList += ' (you)'
+			}
+			
+			front = ', '
+		}
+	}
+	//#TODO get string concat set up to send over shortnamesList
+
+	for (let player in players_attributes) {
+		if (player != host && !players_attributes[player][19]) {
+			add_player_to_game(indexOfGame, player, players_attributes[player][0])
+			io.to(player).emit('backToLobbyNewGame')
+		} else if (!players_attributes[player][19]) {
+			io.to(player).emit('backToLobbyNewGameHost', {shortnamesList, gameID})
+		}
+	}
+}
+
 function reanimate(gameID, shortname, socketID) {
 
 	var players_attributes = in_process_attributes[gameID];
@@ -536,10 +603,7 @@ function reanimate(gameID, shortname, socketID) {
 		}
 	}
 
-	console.log('old socket: ' + oldSocket)
-	console.log('new socket: ' + socketID)
 	var gamePeople = games[findGame(gameID)]
-	console.log('game people: ' + gamePeople)
 
 	for (var i = 1; i < gamePeople.length; i++) {
 		if (gamePeople[i] == oldSocket) {
@@ -562,8 +626,6 @@ function reanimate(gameID, shortname, socketID) {
 		gamePeople.push(socketID)
 	}
 	
-	console.log('game people 2: ' + gamePeople)
-
 	//move the player in the list in front of the ghosts
 
 	for (let playerID in players_attributes) {
